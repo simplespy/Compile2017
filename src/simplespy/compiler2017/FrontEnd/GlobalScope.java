@@ -57,10 +57,16 @@ public class GlobalScope extends Scope {
         List<VarDecNode> paras = new ArrayList<>();
         VarDecNode para = new VarDecNode(new BaseType(TypeNode.TYPENAME.INT, null), "pos", null, null);
         paras.add(para);
+        ArrayList<VarDecNode> paras2 = new ArrayList<>();
+        VarDecNode para2 = new VarDecNode(new BaseType(TypeNode.TYPENAME.INT, null), "left", null, null);
+        VarDecNode para3 = new VarDecNode(new BaseType(TypeNode.TYPENAME.INT, null), "right", null, null);
+
+        paras2.add(para2);
+        paras2.add(para3);
         FuncDefNode length = new FuncDefNode(new BaseType(TypeNode.TYPENAME.INT, null), "length", new ArrayList<>(), new BlockNode(null), null);
         FuncDefNode parseInt = new FuncDefNode(new BaseType(TypeNode.TYPENAME.INT, null), "parseInt", new ArrayList<>(), new BlockNode(null), null);
         FuncDefNode ord = new FuncDefNode(new BaseType(TypeNode.TYPENAME.INT, null), "ord", paras, new BlockNode(null), null);
-        FuncDefNode substring = new FuncDefNode(new BaseType(TypeNode.TYPENAME.STRING, null), "substring", new ArrayList<>(), new BlockNode(null), null);
+        FuncDefNode substring = new FuncDefNode(new BaseType(TypeNode.TYPENAME.STRING, null), "substring", paras2, new BlockNode(null), null);
         string.addEntity(length);
         string.addEntity(parseInt);
         string.addEntity(ord);

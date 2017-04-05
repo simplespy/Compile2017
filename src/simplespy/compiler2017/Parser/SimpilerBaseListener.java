@@ -1,6 +1,7 @@
 // Generated from Simpiler.g4 by ANTLR 4.6
 
 package simplespy.compiler2017.Parser;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -515,6 +516,18 @@ public class SimpilerBaseListener implements SimpilerListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitConstant(SimpilerParser.ConstantContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterCreatorError(SimpilerParser.CreatorErrorContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitCreatorError(SimpilerParser.CreatorErrorContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

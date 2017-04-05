@@ -225,7 +225,7 @@ public class DereferenceChecker implements ASTVisitor {
                 }
                 break;
             case EQ: break;
-            case ADD:case LT:case GT:
+            case ADD:case LT:case GT:case LE:case GE:
                 if (node.getLeft().getType().toString().equals("STRING") && node.getRight().getType().toString().equals("STRING")) {
                     break;
                 }
@@ -312,10 +312,8 @@ public class DereferenceChecker implements ASTVisitor {
 
     @Override
     public void visit(ArefNode node) {
-        if ((node.getExpr() instanceof NewNode)){
-            CompilationError.exceptions.add( new SemanticException("Aref Error at " + node.getLoc().toString()));
 
-        }
+
 
     }
 

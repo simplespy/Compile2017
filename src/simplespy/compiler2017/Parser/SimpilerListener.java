@@ -1,5 +1,6 @@
 // Generated from Simpiler.g4 by ANTLR 4.6
 package simplespy.compiler2017.Parser;
+
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
@@ -489,6 +490,18 @@ public interface SimpilerListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitConstant(SimpilerParser.ConstantContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code creatorError}
+	 * labeled alternative in {@link SimpilerParser#creator}.
+	 * @param ctx the parse tree
+	 */
+	void enterCreatorError(SimpilerParser.CreatorErrorContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code creatorError}
+	 * labeled alternative in {@link SimpilerParser#creator}.
+	 * @param ctx the parse tree
+	 */
+	void exitCreatorError(SimpilerParser.CreatorErrorContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code creatorArray}
 	 * labeled alternative in {@link SimpilerParser#creator}.

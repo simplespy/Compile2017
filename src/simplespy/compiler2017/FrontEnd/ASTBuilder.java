@@ -1,10 +1,12 @@
 package simplespy.compiler2017.FrontEnd;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import simplespy.compiler2017.NodeFamily.*;
 import simplespy.compiler2017.Parser.SimpilerBaseListener;
 import simplespy.compiler2017.Parser.SimpilerParser;
+import simplespy.compiler2017.Simpiler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -141,6 +143,10 @@ public class ASTBuilder extends SimpilerBaseListener {
         }
     }
 
+    @Override
+    public void exitCreatorError(SimpilerParser.CreatorErrorContext ctx) {
+        throw new ParseCancellationException("Array dimension specification in new expression should be left aligned.");
+    }
     @Override
     public void exitContinue(SimpilerParser.ContinueContext ctx) {
         nodeMap.put(ctx, new ContinueNode(getLocation(ctx)));
