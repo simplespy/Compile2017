@@ -15,6 +15,7 @@ public class FuncDefNode extends ASTBranch {
     public final BlockNode body;
     public final Location loc;
 
+
     public Location getLoc() {
         return loc;
     }

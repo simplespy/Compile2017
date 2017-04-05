@@ -13,6 +13,6 @@ public class ThisNode extends ExprNode {
 
     @Override
     public boolean Lv() {
-        return false;
+        return true;
     }
 }

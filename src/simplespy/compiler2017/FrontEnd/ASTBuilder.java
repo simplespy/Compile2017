@@ -223,7 +223,7 @@ public class ASTBuilder extends SimpilerBaseListener {
             case SimpilerParser.String: nodeMap.put(ctx, new BaseType(TypeNode.TYPENAME.STRING, getLocation(ctx))); break;
             case SimpilerParser.Void: nodeMap.put(ctx, new BaseType(TypeNode.TYPENAME.VOID, getLocation(ctx))); break;
             case SimpilerParser.Identifier: nodeMap.put(ctx, new ClassType(ctx.Identifier().getText(), getLocation(ctx))); break;
-            default: throw new RuntimeException("Unhandled type in `nonArrayTypeSpecifier`");
+            default: throw new RuntimeException("Unhandled type in nonArrayTypeSpecifier");
         }
 
     }
@@ -236,12 +236,7 @@ public class ASTBuilder extends SimpilerBaseListener {
 
     @Override
     public void exitArrayTp(SimpilerParser.ArrayTpContext ctx) {
-        if (nodeMap.get(ctx.type()) instanceof ArrayType){
-            ((ArrayType) nodeMap.get(ctx.type())).incDimension();
-            nodeMap.put(ctx, nodeMap.get(ctx.type()));
-        }else{
-            nodeMap.put(ctx, new ArrayType((TypeNode) nodeMap.get(ctx.type()), 1, getLocation(ctx)));
-        }
+        nodeMap.put(ctx, new ArrayType((TypeNode) nodeMap.get(ctx.type()), null, getLocation(ctx)));
     }
 
     @Override

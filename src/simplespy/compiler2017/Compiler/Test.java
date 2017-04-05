@@ -15,7 +15,7 @@ import java.io.*;
  */
 public class Test {
     public static void main(String[] args) throws IOException {
-        String sdir = "Test/";
+        String sdir = "Test/1-semantic-pretest/success_compile/";
         File dir = new File(sdir);
         String[] children = dir.list();
         if (children == null) {
@@ -33,7 +33,7 @@ public class Test {
                 CompilationError.initialize();
 
                 boolean succ = true;
-                try {
+             //   try {
                     ANTLRInputStream input = new ANTLRInputStream(is);
                     SimpilerLexer lexer = new SimpilerLexer(input);
                     CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -48,20 +48,21 @@ public class Test {
                     ASTPrinter printer = new ASTPrinter(os);
                     ast.accept(printer);
 
-                    ScopeBuilder localResolver = new ScopeBuilder();
-                    ast.accept(localResolver);
+                    ScopeBuilder scopeBuilder = new ScopeBuilder();
+                    ast.accept(scopeBuilder);
 
-                TestVisitor testVisitor = new TestVisitor(System.out);
-              //  ast.accept(testVisitor);
+                    TypeResolver typeResolver = new TypeResolver();
+                    ast.accept(typeResolver);
 
                     DereferenceChecker DChecker = new DereferenceChecker();
                     ast.accept(DChecker);
+
                     CompilationError.printExceptions();
-                    if (!CompilationError.exceptions.isEmpty()) throw new Exception();
-                }catch (Exception whatever){
+            //        if (!CompilationError.exceptions.isEmpty()) throw new Exception();
+               // }catch (Exception whatever){
                     System.out.println(filename + "   failed");
                     succ = false;
-                }
+              //  }
                 if (succ) System.out.println(filename + "   passed");
 
 

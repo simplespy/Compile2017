@@ -31,4 +31,9 @@ public class UnaryOpNode extends ExprNode {
     public boolean Lv() {
         return false;
     }
+
+    @Override
+    public TypeNode getType() {
+        return body.getType();
+    }
 }

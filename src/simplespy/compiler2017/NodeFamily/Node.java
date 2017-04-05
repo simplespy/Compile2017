@@ -10,12 +10,10 @@ public abstract class Node {
     public String name;
     public Location loc;
     public Scope scope;
-    public int nReferred;
     public TypeNode type;
     public boolean isLv;
 
     public Node(){
-        nReferred = 0;
     }
     abstract public void accept(ASTVisitor visitor);
 
@@ -32,9 +30,6 @@ public abstract class Node {
         this.scope = scope;
     }
 
-    public void referred() {
-        nReferred++;
-    }
 
     public TypeNode getType() {
       //  System.out.println("Not Override getType()");

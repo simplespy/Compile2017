@@ -34,6 +34,7 @@ public class IDNode extends ExprNode {
         visitor.visit(this);
     }
     public void setEntity(Node ent) {
+        if (entity != null) return;
         this.entity = ent;
     }
 

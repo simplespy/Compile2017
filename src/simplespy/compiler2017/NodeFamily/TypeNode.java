@@ -9,11 +9,11 @@ public abstract class TypeNode extends Node {
         INT, BOOL, STRING, VOID, ARRAY, STRUCT, FUNCTION, NULL
     }
 
-    public TYPENAME type;
+    public TYPENAME typename;
 
     abstract public TypeNode getBaseType();
 
     public TYPENAME getTypeName() {
-        return type;
+        return typename;
     }
 }

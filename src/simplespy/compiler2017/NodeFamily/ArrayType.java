@@ -7,30 +7,25 @@ import simplespy.compiler2017.FrontEnd.ASTVisitor;
  */
 public class ArrayType extends TypeNode {
     public TypeNode baseType;
-    public int dimension;
+    public ExprNode dimension;
     public final Location loc;
 
     public Location getLoc() {
         return loc;
     }
 
-    public ArrayType(TypeNode baseType, int dimension, Location loc){
+    public ArrayType(TypeNode baseType, ExprNode dimension, Location loc){
         this.baseType = baseType;
         this.dimension = dimension;
         this.loc = loc;
     }
 
     public TypeNode getLastType(){
-        if (getDimension() == 1)
-            return baseType;
-        else return new ArrayType(baseType, getDimension()-1, getLoc());
+        return baseType;
     }
 
-    public void incDimension() {
-        ++this.dimension;
-    }
 
-    public int getDimension() {
+    public ExprNode getDimension() {
         return dimension;
     }
 

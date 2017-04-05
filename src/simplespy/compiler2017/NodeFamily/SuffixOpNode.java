@@ -30,4 +30,9 @@ public class SuffixOpNode extends ExprNode {
     public boolean Lv() {
         return false;
     }
+
+    @Override
+    public TypeNode getType() {
+        return expr.getType();
+    }
 }

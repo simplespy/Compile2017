@@ -17,6 +17,7 @@ public class DereferenceChecker implements ASTVisitor {
     private Stack<Node> loopStack;
     private FuncDefNode currentFunction;
 
+
     public DereferenceChecker(){
         loopStack = new Stack<>();
     }
@@ -25,7 +26,7 @@ public class DereferenceChecker implements ASTVisitor {
         if (A instanceof ArrayType && B == null) return true;
         if (A instanceof ClassType && B == null) return true;
         if (A instanceof ArrayType && B instanceof ArrayType){
-            return(A.getBaseType().toString().equals(B.getBaseType().toString())) && (((ArrayType) A).dimension == ((ArrayType) B).dimension);
+            return(checkType(((ArrayType) A).getLastType(), ((ArrayType) B).getLastType()));
         }
 
         return (A.toString().equals(B.toString()));
@@ -107,7 +108,7 @@ public class DereferenceChecker implements ASTVisitor {
     public void visit(VarDecInBlockNode node) {
         if (node.vardec.init != null){
             visit(node.vardec.init);
-            if (!checkType(node.vardec.init.getType(), node.getType())){
+            if (!checkType(node.getType(), node.vardec.init.getType())){
                 CompilationError.exceptions.add(new SemanticException("Unmatched Variable Initialization"));
                 System.exit(1);
             }
@@ -130,7 +131,6 @@ public class DereferenceChecker implements ASTVisitor {
     @Override
     public void visit(ForNode node) {
         loopStack.push(node);
-
         visit(node.init);
         if (node.condition == null) {
             visit(node.step);
@@ -160,7 +160,7 @@ public class DereferenceChecker implements ASTVisitor {
         } else {
             retType = new BaseType(TypeNode.TYPENAME.VOID, node.getLoc());
         }
-        if (!checkType(retType, currentFunction.returnType)) {
+        if (!checkType(currentFunction.returnType, retType)) {
             CompilationError.exceptions.add(new SemanticException("Unmatched Return Type" + node.getLoc().toString()));
             return;
         }
@@ -271,18 +271,17 @@ public class DereferenceChecker implements ASTVisitor {
 
         for (int i = 0; i < node.item.size(); ++i) {
             ExprNode it = node.item.get(i);
-            if (it == null) break;
-            visit(it);
-            if (it.getType().toString() != "INT") {
-                CompilationError.exceptions.add(new SemanticException("Dimension expression in a new-expression should be INT"));
-                return;
+            if (it != null) {
+                visit(it);
+                if (it.getType().toString() != "INT") {
+                    CompilationError.exceptions.add(new SemanticException("Dimension expression in a new-expression should be INT"));
+                    return;
+                }
             }
-        }
-        /*for (int i = 0; i < node.item.size(); ++i)
-            type = new ArrayType(type, i+1, node.getLoc());
+            type = new ArrayType(type, it, node.getLoc());
 
-        node.type = type;*/
-        if (node.item.size() != 0) type = new ArrayType(type, node.item.size(), node.getLoc());
+        }
+
         node.type = type;
 
     }
@@ -291,7 +290,6 @@ public class DereferenceChecker implements ASTVisitor {
     public void visit(IDNode node) {
         try {
             Node ent = node.scope.get(node.name);
-            ent.referred();
             node.setEntity(ent);
             node.type = ent.getType();
         }catch (Exception whatever){

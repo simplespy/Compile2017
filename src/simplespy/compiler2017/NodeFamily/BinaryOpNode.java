@@ -67,8 +67,15 @@ public class BinaryOpNode extends ExprNode {
         visitor.visit(this);
     }
     private boolean checkType(TypeNode A, TypeNode B){
-        return (A.toString() == B.toString());
+        if (A instanceof ArrayType && B == null) return true;
+        if (A instanceof ClassType && B == null) return true;
+        if (A instanceof ArrayType && B instanceof ArrayType){
+            return(checkType(((ArrayType) A).getLastType(), ((ArrayType) B).getLastType()));
+        }
+
+        return (A.toString().equals(B.toString()));
     }
+
     @Override
     public TypeNode getType() {
 
