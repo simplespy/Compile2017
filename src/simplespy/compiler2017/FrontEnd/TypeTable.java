@@ -1,7 +1,5 @@
 package simplespy.compiler2017.FrontEnd;
 
-import com.sun.deploy.security.ValidationState;
-import org.omg.PortableInterceptor.INACTIVE;
 import simplespy.compiler2017.Exception.CompilationError;
 import simplespy.compiler2017.Exception.SemanticException;
 import simplespy.compiler2017.NodeFamily.*;
