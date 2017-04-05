@@ -4,21 +4,25 @@ import simplespy.compiler2017.Exception.CompilationError;
 import simplespy.compiler2017.Exception.SemanticException;
 import simplespy.compiler2017.NodeFamily.*;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by spy on 17/3/30.
  */
 public class GlobalScope extends Scope {
     LocalScope string;
+    LocalScope array;
 
     public GlobalScope(){
         children = new ArrayList<>();
         entities = new LinkedHashMap<>();
         addFunctions();
         addStringScope();
+        addArrayScope();
     }
 
     private void addFunctions(){
@@ -31,8 +35,8 @@ public class GlobalScope extends Scope {
 
         FuncDefNode print = new FuncDefNode(new BaseType(TypeNode.TYPENAME.VOID, null), "print", paras, new BlockNode(null), null);
         FuncDefNode println = new FuncDefNode(new BaseType(TypeNode.TYPENAME.VOID, null), "println", paras, new BlockNode(null), null);
-        FuncDefNode getString = new FuncDefNode(new BaseType(TypeNode.TYPENAME.STRING, null), "getString", null, new BlockNode(null), null);
-        FuncDefNode getInt = new FuncDefNode(new BaseType(TypeNode.TYPENAME.INT, null), "getInt", null, new BlockNode(null), null);
+        FuncDefNode getString = new FuncDefNode(new BaseType(TypeNode.TYPENAME.STRING, null), "getString", new ArrayList<>(), new BlockNode(null), null);
+        FuncDefNode getInt = new FuncDefNode(new BaseType(TypeNode.TYPENAME.INT, null), "getInt", new ArrayList<>(), new BlockNode(null), null);
         FuncDefNode toString = new FuncDefNode(new BaseType(TypeNode.TYPENAME.STRING, null), "toString", paras2, new BlockNode(null), null);
 
         /*entities.put("print", print);
@@ -53,14 +57,20 @@ public class GlobalScope extends Scope {
         List<VarDecNode> paras = new ArrayList<>();
         VarDecNode para = new VarDecNode(new BaseType(TypeNode.TYPENAME.INT, null), "pos", null, null);
         paras.add(para);
-        FuncDefNode length = new FuncDefNode(new BaseType(TypeNode.TYPENAME.INT, null), "length", null, new BlockNode(null), null);
-        FuncDefNode parseInt = new FuncDefNode(new BaseType(TypeNode.TYPENAME.INT, null), "parseInt", null, new BlockNode(null), null);
+        FuncDefNode length = new FuncDefNode(new BaseType(TypeNode.TYPENAME.INT, null), "length", new ArrayList<>(), new BlockNode(null), null);
+        FuncDefNode parseInt = new FuncDefNode(new BaseType(TypeNode.TYPENAME.INT, null), "parseInt", new ArrayList<>(), new BlockNode(null), null);
         FuncDefNode ord = new FuncDefNode(new BaseType(TypeNode.TYPENAME.INT, null), "ord", paras, new BlockNode(null), null);
-        FuncDefNode substring = new FuncDefNode(new BaseType(TypeNode.TYPENAME.STRING, null), "substring", null, new BlockNode(null), null);
+        FuncDefNode substring = new FuncDefNode(new BaseType(TypeNode.TYPENAME.STRING, null), "substring", new ArrayList<>(), new BlockNode(null), null);
         string.addEntity(length);
         string.addEntity(parseInt);
         string.addEntity(ord);
         string.addEntity(substring);
+    }
+
+    private void addArrayScope(){
+        array = new LocalScope(this);
+        FuncDefNode size = new FuncDefNode(new BaseType(TypeNode.TYPENAME.INT, null), "size", new ArrayList<>(), new BlockNode(null), null);
+        array.addEntity(size);
     }
 
     public LocalScope getStringscope(){

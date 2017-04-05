@@ -14,8 +14,8 @@ import java.io.*;
  * Created by spy on 17/3/25.
  */
 public class Test {
-    public static void main(String[] args) throws IOException {
-        String sdir = "Test/";
+    public static void main(String[] args) throws Exception {
+        /*String sdir = "Test/";
         File dir = new File(sdir);
         String[] children = dir.list();
         if (children == null) {
@@ -64,19 +64,70 @@ public class Test {
                   //  System.out.println(filename + "   failed");
                   //  succ = false;
                 //}
-                //if (succ) System.out.println(filename + "   passed");
+                //if (succ) System.out.println(filename + "   passed");*/
+        // try {
+        //InputStream is = new FileInputStream("Test/SingleStmt.txt");
+
+        String sdir = "/Users/spy/programs/Compiler2017/Test/2-semantic-extended/";
+        File dir = new File(sdir);
+        String[] children = dir.list();
+        if (children == null) {
+            System.out.println( "No directory");
+        }
+        else {
+            for (int i = 0; i < children.length; ++i) {
+                String filename = children[i];
 
 
 
 
+                    if (!filename.contains(".txt")) continue;
+                    System.out.println(filename);
+boolean pass = true;
+                    InputStream is = new FileInputStream(sdir + filename); // or System.in;
+                    CompilationError.initialize();
+try{
+                    ANTLRInputStream input = new ANTLRInputStream(is);
+                    SimpilerLexer lexer = new SimpilerLexer(input);
+                    CommonTokenStream tokens = new CommonTokenStream(lexer);
+                    SimpilerParser parser = new SimpilerParser(tokens);
+                    ParseTree tree = parser.program();
 
+                    ParseTreeWalker walker = new ParseTreeWalker();
+                    ASTBuilder builder = new ASTBuilder();
+                    walker.walk(builder, tree);
+                    ASTRoot ast = builder.getAst();
+
+                    //ASTPrinter printer = new ASTPrinter(os);
+                    //ast.accept(printer);
+
+                    ScopeBuilder scopeBuilder = new ScopeBuilder();
+                    ast.accept(scopeBuilder);
+
+                    TypeResolver typeResolver = new TypeResolver();
+                    ast.accept(typeResolver);
+
+                    DereferenceChecker DChecker = new DereferenceChecker();
+                    ast.accept(DChecker);
+
+                    CompilationError.printExceptions();
+
+                    if (!CompilationError.exceptions.isEmpty()) {
+                        CompilationError.printExceptions();
+                        throw new Exception();
+                    }
+
+
+                     } catch (Exception e) {
+                          pass = false;
+                      }
+                if (pass == true){
+                    System.out.println("FAILED");
+                }
+                }
 
 
             }
         }
     }
 
-
-
-
-}

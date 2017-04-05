@@ -238,6 +238,7 @@ public class TypeResolver implements ASTVisitor {
         else if (node.expr.getType() instanceof ArrayType) {
             if (node.member.getName().equals("size")) {
                 node.type = new BaseType(TypeNode.TYPENAME.INT, node.getLoc());
+                node.member.scope = gl.array;
             }return;
         } else{
             CompilationError.exceptions.add(new SemanticException("Can't Access Member here"));

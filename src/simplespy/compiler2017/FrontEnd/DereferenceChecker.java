@@ -207,9 +207,9 @@ public class DereferenceChecker implements ASTVisitor {
     public void visit(BinaryOpNode node) {
         visit(node.getLeft());
         visit(node.getRight());
-        /*if (!checkType(node.getLeft().getType(), node.getRight().getType())){
+        if (!checkType(node.getLeft().getType(), node.getRight().getType())){
             CompilationError.exceptions.add(new SemanticException("Unmatched Binary Expression " + node.getLoc().toString()));
-        }*/
+        }
         switch (node.getOp()){
             case ASSIGN:
                 if (!node.getLeft().Lv()){
@@ -219,13 +219,18 @@ public class DereferenceChecker implements ASTVisitor {
                 break;
             case LOGICAL_AND: case LOGICAL_OR:
                 if (!node.getLeft().getType().toString().equals("BOOL") || !node.getRight().getType().toString().equals("BOOL")) {
-                    CompilationError.exceptions.add(new SemanticException("Operation number must be INT"));
+                    CompilationError.exceptions.add(new SemanticException("Operation number must be INT" + node.getLoc().toString()));
                     return;
                 }
                 break;
+            case EQ: break;
+            case ADD:case LE:
+                if (node.getLeft().getType().toString().equals("STRING") && node.getRight().getType().toString().equals("STRING")) {
+                    break;
+                }
             default:
                 if (!node.getLeft().getType().toString().equals("INT") || !node.getRight().getType().toString().equals("INT")) {
-                    CompilationError.exceptions.add(new SemanticException("Operation number must be INT"));
+                    CompilationError.exceptions.add(new SemanticException("Operation number must be INT"+ node.getLoc().toString()));
                     return;
                 }
 
@@ -313,10 +318,11 @@ public class DereferenceChecker implements ASTVisitor {
     public void visit(MemberNode node) {
         visit(node.expr);
 
-        if (node.expr instanceof ThisNode) {
+        //if (node.expr instanceof ThisNode) {
             visit(node.member);
 
-        }
+      //  }
+
 
     }
 
@@ -328,15 +334,22 @@ public class DereferenceChecker implements ASTVisitor {
     @Override
     public void visit(FuncallNode node) {
         visit(node.name);
-        if (currentParameter.parameters.size() != node.parameters.size()){
-            CompilationError.exceptions.add(new SemanticException("Unmatched Function Parameters number"));
-        }
-        for (int i = 0; i < node.parameters.size(); ++i){
-            if (!checkType(node.parameters.get(i).getType(), currentParameter.parameters.get(i).getType())){
-                CompilationError.exceptions.add(new SemanticException("Unmatched Function Parameters Type"));
+        if (currentParameter.parameters != null && node.parameters != null){
+            if (currentParameter.parameters.size() != node.parameters.size()){
+                CompilationError.exceptions.add(new SemanticException("Unmatched Function Parameters number" + node.getLoc().toString()));
+            }
+            for (int i = 0; i < node.parameters.size(); ++i){
+                if (!checkType(currentParameter.parameters.get(i).getType(), node.parameters.get(i).getType())){
+                    CompilationError.exceptions.add(new SemanticException("Unmatched Function Parameters Type"+ node.getLoc().toString()));
 
+                }
             }
         }
+        else if (currentParameter.parameters == null && node.parameters == null){
+            return;
+        }
+        else  CompilationError.exceptions.add(new SemanticException("Unmatched Function Parameters number"+ node.getLoc().toString()));
+
 
     }
 
