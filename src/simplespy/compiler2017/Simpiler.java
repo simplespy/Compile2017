@@ -23,7 +23,7 @@ import java.io.InputStream;
 public class Simpiler {
     public static void main(String[] argv) throws Exception {
        // try {
-            InputStream is = new FileInputStream("Test/SingleStmt.txt");//System.in;
+            InputStream is = System.in;
 
             CompilationError.initialize();
 
