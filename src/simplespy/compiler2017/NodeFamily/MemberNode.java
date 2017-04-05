@@ -23,7 +23,7 @@ public class MemberNode extends ExprNode {
 
     @Override
     public boolean Lv() {
-        return true;
+        return expr.Lv();
     }
 
     @Override

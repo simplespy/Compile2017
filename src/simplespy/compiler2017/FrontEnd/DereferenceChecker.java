@@ -90,10 +90,11 @@ public class DereferenceChecker implements ASTVisitor {
 
     @Override
     public void visit(ConstructorNode node) {
+
         node.body.getStmts().stream().forEachOrdered(x->{
-       /*     if (x instanceof ReturnNode){
+           if (x instanceof ReturnNode){
                 CompilationError.exceptions.add(new SemanticException("Return in Constructor " + node.getLoc().toString()));
-            }*/
+            }
         });
     }
 
@@ -224,7 +225,7 @@ public class DereferenceChecker implements ASTVisitor {
                 }
                 break;
             case EQ: break;
-            case ADD:case LE:
+            case ADD:case LT:case GT:
                 if (node.getLeft().getType().toString().equals("STRING") && node.getRight().getType().toString().equals("STRING")) {
                     break;
                 }
@@ -337,6 +338,7 @@ public class DereferenceChecker implements ASTVisitor {
         if (currentParameter.parameters != null && node.parameters != null){
             if (currentParameter.parameters.size() != node.parameters.size()){
                 CompilationError.exceptions.add(new SemanticException("Unmatched Function Parameters number" + node.getLoc().toString()));
+                return;
             }
             for (int i = 0; i < node.parameters.size(); ++i){
                 if (!checkType(currentParameter.parameters.get(i).getType(), node.parameters.get(i).getType())){

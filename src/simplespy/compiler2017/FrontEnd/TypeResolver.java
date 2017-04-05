@@ -88,6 +88,10 @@ public class TypeResolver implements ASTVisitor {
 
     @Override
     public void visit(ConstructorNode node) {
+        if (!node.getName().equals(className)){
+            CompilationError.exceptions.add(new SemanticException("Unmatched Constructor "   + node.getLoc().toString()));
+
+        }
         visit(node.body);
 
     }

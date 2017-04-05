@@ -1,6 +1,7 @@
 package simplespy.compiler2017;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
@@ -22,17 +23,18 @@ import java.io.InputStream;
  */
 public class Simpiler {
     public static void main(String[] argv) throws Exception {
-       // try {
-            InputStream is = System.in;
-
+        try {
+            //InputStream is = System.in;
+            InputStream is = new FileInputStream("Test/SingleStmt.txt");//System.in;
             CompilationError.initialize();
 
             ANTLRInputStream input = new ANTLRInputStream(is);
             SimpilerLexer lexer = new SimpilerLexer(input);
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             SimpilerParser parser = new SimpilerParser(tokens);
-            ParseTree tree = parser.program();
+            parser.setErrorHandler(new BailErrorStrategy());
 
+            ParseTree tree = parser.program();
             ParseTreeWalker walker = new ParseTreeWalker();
             ASTBuilder builder = new ASTBuilder();
             walker.walk(builder, tree);
@@ -58,9 +60,9 @@ public class Simpiler {
             }
 
 
-       // } catch (Exception e) {
-      //      System.exit(1);
-      //  }
+        } catch (Exception e) {
+            System.exit(1);
+        }
     }
     
 }
