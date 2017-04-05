@@ -26,7 +26,7 @@ public class ASTPrinter implements ASTVisitor {
     public void visit(ASTRoot node){
         if (node == null) return;
         out.println("---------------------------- ");
-        out.println("Aha!ProgramStart! <(￣︶￣)> ");
+        out.println("Aha!ProgramStart!");
         out.println("---------------------------- ");
         out.println("<<ASTRoot>> ");
 
