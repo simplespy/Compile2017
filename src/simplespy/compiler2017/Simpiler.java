@@ -13,15 +13,19 @@ import simplespy.compiler2017.NodeFamily.ASTRoot;
 import simplespy.compiler2017.Parser.SimpilerLexer;
 import simplespy.compiler2017.Parser.SimpilerParser;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 
 /**
  * Created by spy on 17/3/22.
  */
 public class Simpiler {
-    public static void main(String[] argv) {
+    public static void main(String[] argv) throws IOException {
         try {
-            InputStream is = System.in;
+            InputStream is = System.in;//new FileInputStream("Test/SingleStmt.txt");//System.in;
+
+            CompilationError.initialize();
 
             ANTLRInputStream input = new ANTLRInputStream(is);
             SimpilerLexer lexer = new SimpilerLexer(input);
@@ -46,7 +50,8 @@ public class Simpiler {
             DereferenceChecker DChecker = new DereferenceChecker();
             ast.accept(DChecker);
 
-            if (!CompilationError.exceptions.isEmpty()) throw new Exception();
+          //  CompilationError.printExceptions();
+            if (!CompilationError.exceptions.isEmpty())  throw new Exception();
 
 
         } catch (Exception e) {
