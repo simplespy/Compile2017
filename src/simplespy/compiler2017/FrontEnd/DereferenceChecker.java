@@ -92,9 +92,9 @@ public class DereferenceChecker implements ASTVisitor {
     public void visit(ConstructorNode node) {
 
         node.body.getStmts().stream().forEachOrdered(x->{
-           if (x instanceof ReturnNode){
+          /* if (x instanceof ReturnNode){
                 CompilationError.exceptions.add(new SemanticException("Return in Constructor " + node.getLoc().toString()));
-            }
+            }*/
         });
     }
 
@@ -312,6 +312,10 @@ public class DereferenceChecker implements ASTVisitor {
 
     @Override
     public void visit(ArefNode node) {
+        if ((node.getExpr() instanceof NewNode)){
+            CompilationError.exceptions.add( new SemanticException("Aref Error at " + node.getLoc().toString()));
+
+        }
 
     }
 
