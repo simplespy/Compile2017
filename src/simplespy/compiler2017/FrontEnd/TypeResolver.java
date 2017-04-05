@@ -4,8 +4,6 @@ import simplespy.compiler2017.Exception.CompilationError;
 import simplespy.compiler2017.Exception.SemanticException;
 import simplespy.compiler2017.NodeFamily.*;
 
-import java.util.List;
-import java.util.Stack;
 
 /**
  * Created by spy on 17/3/30.
@@ -189,7 +187,22 @@ public class TypeResolver implements ASTVisitor {
 
     @Override
     public void visit(NewNode node) {
-        node.item.stream().forEachOrdered(this::visit);
+        TypeNode type = node.getType();
+
+        for (int i = 0; i < node.item.size(); ++i) {
+            ExprNode it = node.item.get(i);
+            if (it != null) {
+                visit(it);
+                if (it.getType().toString() != "INT") {
+                    CompilationError.exceptions.add(new SemanticException("Dimension expression in a new-expression should be INT"));
+                    return;
+                }
+            }
+            type = new ArrayType(type, it, node.getLoc());
+
+        }
+
+        node.type = type;
     }
 
     @Override
@@ -245,6 +258,9 @@ public class TypeResolver implements ASTVisitor {
     @Override
     public void visit(FuncallNode node) {
         visit(node.name);
+        node.parameters.stream().forEachOrdered(this::visit);
+
+
     }
 
     @Override

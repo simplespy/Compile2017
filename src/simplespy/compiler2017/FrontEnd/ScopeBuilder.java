@@ -29,7 +29,16 @@ public class ScopeBuilder implements ASTVisitor {
     }
 
 
+    private void checkMain(){
+        Node main = gl.get("main");
+        if (gl == null){
+            CompilationError.exceptions.add(new SemanticException("Program doesn't have main function"));
+        }
+        else if (main instanceof FuncDefNode && !((FuncDefNode)main).getReturnType().toString().equals("INT")){
+            CompilationError.exceptions.add(new SemanticException("main function must be INT type"));
 
+        }
+    }
 
 
     @Override
@@ -37,8 +46,11 @@ public class ScopeBuilder implements ASTVisitor {
         typeTable = node.typeTable;
         gl = node.globalScope;
         scopeStack.push(node.globalScope);
-        node.branches.stream().forEachOrdered(node.globalScope::addEntity);
-        node.branches.stream().forEachOrdered(this::visit);
+        node.branches.stream().forEachOrdered(x->{gl.addEntity(x); visit(x);});
+
+       // node.branches.stream().forEachOrdered(node.globalScope::addEntity);
+     //   node.branches.stream().forEachOrdered(this::visit);
+        checkMain();
     }
 
     @Override
@@ -53,6 +65,7 @@ public class ScopeBuilder implements ASTVisitor {
         scopeStack.push(localScope);
         currentClass = localScope;
         className = node.getName();
+
         node.getMembers().stream().forEachOrdered(localScope::addEntity);
         node.getMembers().stream().forEachOrdered(this::visit);
         scopeStack.pop();
@@ -110,6 +123,7 @@ public class ScopeBuilder implements ASTVisitor {
     public void visit(BlockNode node) {
         LocalScope localScope = new LocalScope(scopeStack.peek());
         scopeStack.push(localScope);
+
         node.getStmts().stream().forEachOrdered(x->x.setScope(scopeStack.peek()));
         node.getStmts().stream().forEachOrdered(this::visit);
         node.setScope(scopeStack.pop());
@@ -219,7 +233,11 @@ public class ScopeBuilder implements ASTVisitor {
 
     @Override
     public void visit(FuncallNode node) {
-        visit(node.name);
+        node.setScope(scopeStack.peek());
+        node.name.setScope(scopeStack.peek());
+        if (!(node.name instanceof IDNode)){
+            visit(node.name);
+        }
         node.parameters.stream().forEachOrdered(this::visit);
     }
 

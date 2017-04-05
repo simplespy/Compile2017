@@ -1,11 +1,9 @@
 package simplespy.compiler2017.FrontEnd;
 
-import simplespy.compiler2017.Exception.CompilationError;
-import simplespy.compiler2017.Exception.SemanticException;
+
 import simplespy.compiler2017.NodeFamily.Node;
 
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Created by spy on 17/3/30.

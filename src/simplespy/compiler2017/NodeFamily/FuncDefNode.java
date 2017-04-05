@@ -14,6 +14,7 @@ public class FuncDefNode extends ASTBranch {
     public final List<VarDecNode> parameters;
     public final BlockNode body;
     public final Location loc;
+    public ReturnNode returnNode;
 
 
     public Location getLoc() {
@@ -26,6 +27,7 @@ public class FuncDefNode extends ASTBranch {
         this.parameters = parameters;
         this.body = body;
         this.loc = loc;
+        this.returnNode = null;
     }
 
     public String getName() {

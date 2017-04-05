@@ -1,6 +1,5 @@
 package simplespy.compiler2017.FrontEnd;
 
-import simplespy.compiler2017.Exception.SemanticException;
 import simplespy.compiler2017.NodeFamily.*;
 
 import java.io.PrintStream;

@@ -4,7 +4,6 @@ import simplespy.compiler2017.Exception.CompilationError;
 import simplespy.compiler2017.Exception.SemanticException;
 import simplespy.compiler2017.NodeFamily.*;
 
-import java.util.Iterator;
 import java.util.Stack;
 
 /**
@@ -56,6 +55,10 @@ public class DereferenceChecker implements ASTVisitor {
     public void visit(FuncDefNode node) {
         currentFunction = node;
         visit(node.body);
+      /*  if (!node.getName().equals("main") && node.returnNode == null && !node.returnType.toString().equals("VOID")){
+            CompilationError.exceptions.add(new SemanticException("Function doesn't return"));
+        }*/
+        currentFunction = null;
     }
 
     @Override
@@ -87,9 +90,9 @@ public class DereferenceChecker implements ASTVisitor {
     @Override
     public void visit(ConstructorNode node) {
         node.body.getStmts().stream().forEachOrdered(x->{
-            if (x instanceof ReturnNode){
+       /*     if (x instanceof ReturnNode){
                 CompilationError.exceptions.add(new SemanticException("Return in Constructor " + node.getLoc().toString()));
-            }
+            }*/
         });
     }
 
@@ -164,6 +167,7 @@ public class DereferenceChecker implements ASTVisitor {
             CompilationError.exceptions.add(new SemanticException("Unmatched Return Type" + node.getLoc().toString()));
             return;
         }
+        currentFunction.returnNode = node;
 
     }
 
@@ -267,22 +271,6 @@ public class DereferenceChecker implements ASTVisitor {
 
     @Override
     public void visit(NewNode node) {
-        TypeNode type = node.getType();
-
-        for (int i = 0; i < node.item.size(); ++i) {
-            ExprNode it = node.item.get(i);
-            if (it != null) {
-                visit(it);
-                if (it.getType().toString() != "INT") {
-                    CompilationError.exceptions.add(new SemanticException("Dimension expression in a new-expression should be INT"));
-                    return;
-                }
-            }
-            type = new ArrayType(type, it, node.getLoc());
-
-        }
-
-        node.type = type;
 
     }
 

@@ -2,7 +2,6 @@ package simplespy.compiler2017.FrontEnd;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
-import simplespy.compiler2017.Compiler.Simpiler;
 import simplespy.compiler2017.NodeFamily.*;
 import simplespy.compiler2017.Parser.SimpilerBaseListener;
 import simplespy.compiler2017.Parser.SimpilerParser;

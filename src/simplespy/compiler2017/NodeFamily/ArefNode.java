@@ -3,9 +3,7 @@ package simplespy.compiler2017.NodeFamily;
 import simplespy.compiler2017.Exception.CompilationError;
 import simplespy.compiler2017.Exception.SemanticException;
 import simplespy.compiler2017.FrontEnd.ASTVisitor;
-import simplespy.compiler2017.FrontEnd.TypeTable;
 
-import java.lang.reflect.Array;
 
 /**
  * Created by spy on 17/3/27.
