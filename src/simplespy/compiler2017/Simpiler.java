@@ -24,15 +24,15 @@ import java.io.InputStream;
 public class Simpiler {
     public static void main(String[] argv) throws Exception {
         try {
-            //InputStream is = System.in;
-            InputStream is = new FileInputStream("Test/SingleStmt.txt");//System.in;
+            InputStream is = System.in;
+            //InputStream is = new FileInputStream("Test/SingleStmt.txt");//System.in;
             CompilationError.initialize();
 
             ANTLRInputStream input = new ANTLRInputStream(is);
             SimpilerLexer lexer = new SimpilerLexer(input);
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             SimpilerParser parser = new SimpilerParser(tokens);
-            //parser.setErrorHandler(new BailErrorStrategy());
+            parser.setErrorHandler(new BailErrorStrategy());
 
             ParseTree tree = parser.program();
             ParseTreeWalker walker = new ParseTreeWalker();
