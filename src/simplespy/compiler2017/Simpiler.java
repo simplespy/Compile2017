@@ -21,9 +21,9 @@ import java.io.InputStream;
  * Created by spy on 17/3/22.
  */
 public class Simpiler {
-    public static void main(String[] argv) throws IOException {
-        try {
-            InputStream is = System.in;//new FileInputStream("Test/SingleStmt.txt");//System.in;
+    public static void main(String[] argv) throws Exception {
+       // try {
+            InputStream is = new FileInputStream("Test/SingleStmt.txt");//System.in;
 
             CompilationError.initialize();
 
@@ -51,12 +51,16 @@ public class Simpiler {
             ast.accept(DChecker);
 
           //  CompilationError.printExceptions();
-            if (!CompilationError.exceptions.isEmpty())  throw new Exception();
+
+            if (!CompilationError.exceptions.isEmpty()) {
+                CompilationError.printExceptions();
+                throw new Exception();
+            }
 
 
-        } catch (Exception e) {
-            System.exit(1);
-        }
+       // } catch (Exception e) {
+      //      System.exit(1);
+      //  }
     }
     
 }

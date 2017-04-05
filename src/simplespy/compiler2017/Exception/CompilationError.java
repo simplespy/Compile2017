@@ -14,7 +14,7 @@ public class CompilationError {
     }
 
     public static void printExceptions(){
-        exceptions.stream().forEach(x->System.out.println(x.getMessage()));
+        exceptions.stream().forEach(x->System.err.println(x.getMessage()));
     }
 
     public void add(Exception e){
