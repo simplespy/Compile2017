@@ -32,7 +32,7 @@ public class Simpiler {
             SimpilerLexer lexer = new SimpilerLexer(input);
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             SimpilerParser parser = new SimpilerParser(tokens);
-            parser.setErrorHandler(new BailErrorStrategy());
+            //parser.setErrorHandler(new BailErrorStrategy());
 
             ParseTree tree = parser.program();
             ParseTreeWalker walker = new ParseTreeWalker();
@@ -64,5 +64,5 @@ public class Simpiler {
             System.exit(1);
         }
     }
-    
+
 }
