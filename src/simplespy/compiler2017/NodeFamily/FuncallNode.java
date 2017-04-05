@@ -11,6 +11,7 @@ public class FuncallNode extends ExprNode {
     public final ExprNode name;
     public final List<ExprNode> parameters;
     public final Location loc;
+    public FuncDefNode entity;
 
     public Location getLoc() {
         return loc;

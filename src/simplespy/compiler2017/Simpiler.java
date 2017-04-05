@@ -50,7 +50,7 @@ public class Simpiler {
             DereferenceChecker DChecker = new DereferenceChecker();
             ast.accept(DChecker);
 
-          //  CompilationError.printExceptions();
+            CompilationError.printExceptions();
 
             if (!CompilationError.exceptions.isEmpty()) {
                 CompilationError.printExceptions();

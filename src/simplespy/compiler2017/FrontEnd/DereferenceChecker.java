@@ -15,6 +15,7 @@ public class DereferenceChecker implements ASTVisitor {
 
     private Stack<Node> loopStack;
     private FuncDefNode currentFunction;
+    private FuncDefNode currentParameter;
 
 
     public DereferenceChecker(){
@@ -206,14 +207,30 @@ public class DereferenceChecker implements ASTVisitor {
     public void visit(BinaryOpNode node) {
         visit(node.getLeft());
         visit(node.getRight());
-        if (node.getOp() == BinaryOpNode.BinaryOp.ASSIGN && !node.getLeft().Lv()) {
-            System.out.println(node.getLeft().Lv());
-            CompilationError.exceptions.add(new SemanticException("Expression is not left value" + node.getLoc().toString()));
-            return;
-        }
-        if (!checkType(node.getLeft().getType(), node.getRight().getType())){
+        /*if (!checkType(node.getLeft().getType(), node.getRight().getType())){
             CompilationError.exceptions.add(new SemanticException("Unmatched Binary Expression " + node.getLoc().toString()));
+        }*/
+        switch (node.getOp()){
+            case ASSIGN:
+                if (!node.getLeft().Lv()){
+                    CompilationError.exceptions.add(new SemanticException("Expression is not left value" + node.getLoc().toString()));
+                    return;
+                }
+                break;
+            case LOGICAL_AND: case LOGICAL_OR:
+                if (!node.getLeft().getType().toString().equals("BOOL") || !node.getRight().getType().toString().equals("BOOL")) {
+                    CompilationError.exceptions.add(new SemanticException("Operation number must be INT"));
+                    return;
+                }
+                break;
+            default:
+                if (!node.getLeft().getType().toString().equals("INT") || !node.getRight().getType().toString().equals("INT")) {
+                    CompilationError.exceptions.add(new SemanticException("Operation number must be INT"));
+                    return;
+                }
+
         }
+
     }
 
     @Override
@@ -280,6 +297,7 @@ public class DereferenceChecker implements ASTVisitor {
             Node ent = node.scope.get(node.name);
             node.setEntity(ent);
             node.type = ent.getType();
+            if (ent instanceof FuncDefNode) currentParameter = (FuncDefNode) ent;
         }catch (Exception whatever){
             CompilationError.exceptions.add( new SemanticException("ID-Node Error at " + node.getLoc().toString()));
         }
@@ -309,6 +327,16 @@ public class DereferenceChecker implements ASTVisitor {
 
     @Override
     public void visit(FuncallNode node) {
+        visit(node.name);
+        if (currentParameter.parameters.size() != node.parameters.size()){
+            CompilationError.exceptions.add(new SemanticException("Unmatched Function Parameters number"));
+        }
+        for (int i = 0; i < node.parameters.size(); ++i){
+            if (!checkType(node.parameters.get(i).getType(), currentParameter.parameters.get(i).getType())){
+                CompilationError.exceptions.add(new SemanticException("Unmatched Function Parameters Type"));
+
+            }
+        }
 
     }
 

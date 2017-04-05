@@ -36,7 +36,8 @@ public class ScopeBuilder implements ASTVisitor {
         }
         else if (main instanceof FuncDefNode && !((FuncDefNode)main).getReturnType().toString().equals("INT")){
             CompilationError.exceptions.add(new SemanticException("main function must be INT type"));
-
+        }else if (main instanceof FuncDefNode && ((FuncDefNode)main).parameters.size() != 0){
+            CompilationError.exceptions.add(new SemanticException("main function can't have parameters"));
         }
     }
 
@@ -75,7 +76,8 @@ public class ScopeBuilder implements ASTVisitor {
     @Override
     public void visit(FuncDefNode node) {
         pushScope(node.parameters);
-        visit(node.body);
+        node.body.getStmts().stream().forEachOrdered(x->x.setScope(scopeStack.peek()));
+        node.body.getStmts().stream().forEachOrdered(this::visit);
         scopeStack.pop();
 
     }

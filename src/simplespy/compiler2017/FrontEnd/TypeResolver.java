@@ -39,6 +39,9 @@ public class TypeResolver implements ASTVisitor {
     @Override
     public void visit(FuncDefNode node) {
         node.type = node.returnType;
+        visit(node.getReturnType());
+        node.parameters.stream().forEachOrdered(this::visit);
+
         visit(node.body);
     }
 
