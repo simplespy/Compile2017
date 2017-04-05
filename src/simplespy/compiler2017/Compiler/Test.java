@@ -15,7 +15,7 @@ import java.io.*;
  */
 public class Test {
     public static void main(String[] args) throws IOException {
-        String sdir = "Test/1-semantic-pretest/success_compile/";
+        String sdir = "/Users/spy/programs/Compiler2017/Test/2-semantic-extended/";
         File dir = new File(sdir);
         String[] children = dir.list();
         if (children == null) {
@@ -33,7 +33,7 @@ public class Test {
                 CompilationError.initialize();
 
                 boolean succ = true;
-             //   try {
+                try {
                     ANTLRInputStream input = new ANTLRInputStream(is);
                     SimpilerLexer lexer = new SimpilerLexer(input);
                     CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -45,8 +45,8 @@ public class Test {
                     walker.walk(builder, tree);
                     ASTRoot ast = builder.getAst();
 
-                    ASTPrinter printer = new ASTPrinter(os);
-                    ast.accept(printer);
+                    //ASTPrinter printer = new ASTPrinter(os);
+                    //ast.accept(printer);
 
                     ScopeBuilder scopeBuilder = new ScopeBuilder();
                     ast.accept(scopeBuilder);
@@ -57,13 +57,14 @@ public class Test {
                     DereferenceChecker DChecker = new DereferenceChecker();
                     ast.accept(DChecker);
 
-                    CompilationError.printExceptions();
-            //        if (!CompilationError.exceptions.isEmpty()) throw new Exception();
-               // }catch (Exception whatever){
-                    System.out.println(filename + "   failed");
-                    succ = false;
-              //  }
-                if (succ) System.out.println(filename + "   passed");
+                   // CompilationError.printExceptions();
+                    if (!CompilationError.exceptions.isEmpty()) throw new Exception();
+                }catch (Exception whatever){
+                    System.exit(1);
+                  //  System.out.println(filename + "   failed");
+                  //  succ = false;
+                }
+                //if (succ) System.out.println(filename + "   passed");
 
 
 
