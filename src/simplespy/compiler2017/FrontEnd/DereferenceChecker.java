@@ -92,9 +92,9 @@ public class DereferenceChecker implements ASTVisitor {
     public void visit(ConstructorNode node) {
 
         node.body.getStmts().stream().forEachOrdered(x->{
-          /* if (x instanceof ReturnNode){
+           if (x instanceof ReturnNode && ((ReturnNode) x).value != null){
                 CompilationError.exceptions.add(new SemanticException("Return in Constructor " + node.getLoc().toString()));
-            }*/
+            }
         });
     }
 
