@@ -1,7 +1,6 @@
-package simplespy.compiler2017.Compiler;
+package simplespy.compiler2017;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
@@ -14,7 +13,6 @@ import simplespy.compiler2017.NodeFamily.ASTRoot;
 import simplespy.compiler2017.Parser.SimpilerLexer;
 import simplespy.compiler2017.Parser.SimpilerParser;
 
-import java.io.FileInputStream;
 import java.io.InputStream;
 
 /**

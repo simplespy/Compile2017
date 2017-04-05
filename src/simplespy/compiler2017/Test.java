@@ -1,4 +1,4 @@
-package simplespy.compiler2017.Compiler;
+package simplespy.compiler2017;
 
 import simplespy.compiler2017.Exception.CompilationError;
 import simplespy.compiler2017.FrontEnd.*;
@@ -15,7 +15,7 @@ import java.io.*;
  */
 public class Test {
     public static void main(String[] args) throws IOException {
-        String sdir = "/Users/spy/programs/Compiler2017/Test/2-semantic-extended/";
+        String sdir = "Test/";
         File dir = new File(sdir);
         String[] children = dir.list();
         if (children == null) {
@@ -33,7 +33,7 @@ public class Test {
                 CompilationError.initialize();
 
                 boolean succ = true;
-                try {
+     //           try {
                     ANTLRInputStream input = new ANTLRInputStream(is);
                     SimpilerLexer lexer = new SimpilerLexer(input);
                     CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -58,12 +58,12 @@ public class Test {
                     ast.accept(DChecker);
 
                    // CompilationError.printExceptions();
-                    if (!CompilationError.exceptions.isEmpty()) throw new Exception();
-                }catch (Exception whatever){
-                    System.exit(1);
+             //       if (!CompilationError.exceptions.isEmpty()) throw new Exception();
+               // }catch (Exception whatever){
+                 //   System.exit(1);
                   //  System.out.println(filename + "   failed");
                   //  succ = false;
-                }
+                //}
                 //if (succ) System.out.println(filename + "   passed");
 
 
