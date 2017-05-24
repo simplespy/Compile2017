@@ -5,18 +5,20 @@ import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import simplespy.compiler2017.Asm.AssemblyCode;
+import simplespy.compiler2017.BackEnd.ASMPrinter;
+import simplespy.compiler2017.BackEnd.CodeGenerator;
 import simplespy.compiler2017.Exception.CompilationError;
-import simplespy.compiler2017.FrontEnd.ASTBuilder;
-import simplespy.compiler2017.FrontEnd.DereferenceChecker;
-import simplespy.compiler2017.FrontEnd.ScopeBuilder;
-import simplespy.compiler2017.FrontEnd.TypeResolver;
+import simplespy.compiler2017.FrontEnd.*;
 import simplespy.compiler2017.NodeFamily.ASTRoot;
+import simplespy.compiler2017.NodeFamily.IRNode.IRRoot;
 import simplespy.compiler2017.Parser.SimpilerLexer;
 import simplespy.compiler2017.Parser.SimpilerParser;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 
 /**
  * Created by spy on 17/3/22.
@@ -27,6 +29,7 @@ public class Simpiler {
             InputStream is = System.in;
             //InputStream is = new FileInputStream("Test/SingleStmt.txt");//System.in;
             CompilationError.initialize();
+            //PrintStream os = new PrintStream("/Users/spy/programs/x86/first.asm");
 
             ANTLRInputStream input = new ANTLRInputStream(is);
             SimpilerLexer lexer = new SimpilerLexer(input);
@@ -40,7 +43,7 @@ public class Simpiler {
             walker.walk(builder, tree);
             ASTRoot ast = builder.getAst();
 
-            //ASTPrinter printer = new ASTPrinter(os);
+            //ASTPrinter printer = new ASTPrinter(System.out);
             //ast.accept(printer);
 
             ScopeBuilder scopeBuilder = new ScopeBuilder();
@@ -59,6 +62,21 @@ public class Simpiler {
                 throw new Exception();
             }
 
+
+            IRGenerator irGenerator = new IRGenerator();
+            ast.accept(irGenerator);
+            IRRoot ir = irGenerator.getIR();
+
+
+            //IRPrinter irPrinter = new IRPrinter(System.out);
+            //ir.accept(irPrinter);
+
+            CodeGenerator codeGenerator = new CodeGenerator();
+            ir.accept(codeGenerator);
+            AssemblyCode ac = codeGenerator.getAC();
+
+            ASMPrinter asmPrinter = new ASMPrinter(System.out);
+            ac.accept(asmPrinter);
 
         } catch (Exception e) {
             System.exit(1);

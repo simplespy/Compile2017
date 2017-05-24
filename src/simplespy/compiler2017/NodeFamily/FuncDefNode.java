@@ -2,6 +2,8 @@ package simplespy.compiler2017.NodeFamily;
 
 
 import simplespy.compiler2017.FrontEnd.ASTVisitor;
+import simplespy.compiler2017.FrontEnd.IRVisitor;
+import simplespy.compiler2017.NodeFamily.IRNode.Stmt;
 
 import java.util.List;
 
@@ -15,6 +17,8 @@ public class FuncDefNode extends ASTBranch {
     public final BlockNode body;
     public final Location loc;
     public ReturnNode returnNode;
+
+    public List<Stmt> ir;
 
 
     public Location getLoc() {
@@ -43,8 +47,21 @@ public class FuncDefNode extends ASTBranch {
         visitor.visit(this);
     }
 
+    public void accept(IRVisitor visitor) {
+        visitor.visit(this);
+    }
+
+
     @Override
     public TypeNode getType() {
         return returnType;
+    }
+
+    public void setIr(List<Stmt> ir) {
+        this.ir = ir;
+    }
+
+    public List<Stmt> getIr() {
+        return ir;
     }
 }

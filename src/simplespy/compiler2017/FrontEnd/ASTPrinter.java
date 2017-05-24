@@ -97,8 +97,8 @@ public class ASTPrinter implements ASTVisitor {
         if (node == null) return;
         node.accept(this);
     }
-    
-    
+
+
 
     @Override
     public void visit(BlockNode node) {
@@ -139,7 +139,10 @@ public class ASTPrinter implements ASTVisitor {
         inc();
         visit(node.step);
         dec();
-    }
+        out.println(indent.toString() + "Body : ");
+        inc();
+        visit(node.body);
+        dec();    }
 
     @Override
     public void visit(ReturnNode node) {
@@ -251,8 +254,8 @@ public class ASTPrinter implements ASTVisitor {
         inc();
         visit(node.body);
         dec();
-        
-        
+
+
     }
 
     @Override

@@ -52,4 +52,12 @@ public class ArefNode extends ExprNode {
         TypeNode newtype = ((ArrayType)orig).getLastType();
         return newtype;
     }
+
+    public int getDim(){
+        return this.expr.getType().getDim();
+    }
+
+    public int getLen(){
+        return this.expr.getType().getLen();
+    }
 }

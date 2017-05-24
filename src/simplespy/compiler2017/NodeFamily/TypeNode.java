@@ -12,8 +12,23 @@ public abstract class TypeNode extends Node {
     public TYPENAME typename;
 
     abstract public TypeNode getBaseType();
+    abstract public int getDim();
+    int length;
+    abstract public int getLen();
 
     public TYPENAME getTypeName() {
         return typename;
+    }
+    public int size(){
+        switch (this.toString()){
+            case "INT":
+                return 4;
+            case "BOOL":
+                return 2;
+            case "VOID":
+                return 1;
+            default:
+                return 1;
+        }
     }
 }

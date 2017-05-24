@@ -56,9 +56,7 @@ public class DereferenceChecker implements ASTVisitor {
     public void visit(FuncDefNode node) {
         currentFunction = node;
         visit(node.body);
-      /*  if (!node.getName().equals("main") && node.returnNode == null && !node.returnType.toString().equals("VOID")){
-            CompilationError.exceptions.add(new SemanticException("Function doesn't return"));
-        }*/
+
         currentFunction = null;
     }
 
@@ -147,6 +145,7 @@ public class DereferenceChecker implements ASTVisitor {
         }
         visit(node.condition);
         visit(node.step);
+        visit(node.body);
         loopStack.pop();
 
 

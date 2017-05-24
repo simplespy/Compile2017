@@ -3,9 +3,10 @@ package simplespy.compiler2017.FrontEnd;
 import simplespy.compiler2017.NodeFamily.*;
 
 /**
- * Created by spy on 17/3/25.
+ * Created by spy on 5/15/17.
  */
-public interface ASTVisitor {
+
+public interface ASTVisitor{
     void visit(ASTRoot node) ;
 
     void visit(ASTBranch node);
@@ -51,7 +52,6 @@ public interface ASTVisitor {
     void visit(StringLiteralNode node);
     void visit(NullLiteralNode node);
     void visit(EmptyNode node);
-
 
 
 }

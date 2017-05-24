@@ -1,5 +1,7 @@
 package simplespy.compiler2017.NodeFamily;
 
+import simplespy.compiler2017.Asm.MemoryReference;
+import simplespy.compiler2017.Asm.Symbol;
 import simplespy.compiler2017.FrontEnd.Scope;
 import simplespy.compiler2017.FrontEnd.ASTVisitor;
 
@@ -34,6 +36,13 @@ public abstract class Node {
     public TypeNode getType() {
       //  System.out.println("Not Override getType()");
         return type;
+    }
+    public MemoryReference getMemoryReference(){
+        return null;
+    }
+
+    public Symbol getAddress(){
+        return null;
     }
 
 }

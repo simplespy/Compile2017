@@ -9,6 +9,16 @@ public class ArrayType extends TypeNode {
     public TypeNode baseType;
     public ExprNode dimension;
     public final Location loc;
+    int length;
+
+    @Override
+    public int getLen() {
+        return length;
+    }
+
+    public void setLength(int length) {
+        this.length = length;
+    }
 
     public Location getLoc() {
         return loc;
@@ -32,6 +42,10 @@ public class ArrayType extends TypeNode {
     @Override
     public TypeNode getBaseType() {
         return baseType.getBaseType();
+    }
+
+    public int getDim(){
+        return baseType.getDim() + 1;
     }
 
     @Override

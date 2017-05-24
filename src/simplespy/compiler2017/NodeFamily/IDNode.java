@@ -43,4 +43,9 @@ public class IDNode extends ExprNode {
         if (name.equals( "size")) return new BaseType(TypeNode.TYPENAME.INT, getLoc());
         return entity.getType();
     }
+
+    public Node getEntity() {
+        if (entity instanceof VarDecInBlockNode) return ((VarDecInBlockNode) entity).getVardec();
+        return entity;
+    }
 }

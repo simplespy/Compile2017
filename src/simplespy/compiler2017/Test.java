@@ -96,9 +96,10 @@ public class Test {
                 ASTBuilder builder = new ASTBuilder();
                 walker.walk(builder, tree);
                 ASTRoot ast = builder.getAst();
+                PrintStream os = new PrintStream("Output/"+filename.substring(0, filename.length()-3)+"out");
 
-                //ASTPrinter printer = new ASTPrinter(os);
-                //ast.accept(printer);
+                ASTPrinter printer = new ASTPrinter(os);
+                ast.accept(printer);
 
                 ScopeBuilder scopeBuilder = new ScopeBuilder();
                 ast.accept(scopeBuilder);

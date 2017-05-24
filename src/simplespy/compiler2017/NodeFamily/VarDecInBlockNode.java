@@ -1,5 +1,7 @@
 package simplespy.compiler2017.NodeFamily;
 
+import simplespy.compiler2017.Asm.MemoryReference;
+import simplespy.compiler2017.Asm.Symbol;
 import simplespy.compiler2017.FrontEnd.ASTVisitor;
 
 /**
@@ -13,6 +15,7 @@ public class VarDecInBlockNode extends StmtNode {
         this.vardec = vardec;
         this.loc = loc;
     }
+
 
     @Override
     public void accept(ASTVisitor visitor) {
@@ -35,5 +38,13 @@ public class VarDecInBlockNode extends StmtNode {
     @Override
     public TypeNode getType() {
         return vardec.getType();
+    }
+
+    @Override
+    public MemoryReference getMemoryReference() {
+        return vardec.getMemoryReference();
+    }
+    public Symbol getAddress(){
+        return vardec.getAddress();
     }
 }

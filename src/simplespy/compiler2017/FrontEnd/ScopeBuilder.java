@@ -4,6 +4,7 @@ import simplespy.compiler2017.Exception.CompilationError;
 import simplespy.compiler2017.NodeFamily.*;
 import simplespy.compiler2017.Exception.SemanticException;
 
+import java.net.IDN;
 import java.util.List;
 import java.util.Stack;
 
@@ -77,6 +78,8 @@ public class ScopeBuilder implements ASTVisitor {
     public void visit(FuncDefNode node) {
         pushScope(node.parameters);
         node.body.getStmts().stream().forEachOrdered(x->x.setScope(scopeStack.peek()));
+        node.setScope(scopeStack.peek());
+        node.body.setScope(scopeStack.peek());
         node.body.getStmts().stream().forEachOrdered(this::visit);
         scopeStack.pop();
 
@@ -149,6 +152,7 @@ public class ScopeBuilder implements ASTVisitor {
         visit(node.init);
         visit(node.condition);
         visit(node.step);
+        visit(node.body);
     }
 
     @Override
@@ -250,7 +254,9 @@ public class ScopeBuilder implements ASTVisitor {
     public void visit(BoolLiteralNode node) {}
 
     @Override
-    public void visit(StringLiteralNode node) {}
+    public void visit(StringLiteralNode node) {
+        typeTable.putString(node.value,node);
+    }
 
     @Override
     public void visit(NullLiteralNode node) {}

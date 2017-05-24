@@ -13,10 +13,12 @@ import java.util.*;
 public class TypeTable {
     Map<String, ClassType> classTypeMap;
     Map<String, Scope> classScope;
+    Map<String, StringLiteralNode> stringMap;
 
     public TypeTable() {
         classTypeMap = new LinkedHashMap<>();
         classScope = new LinkedHashMap<>();
+        stringMap = new LinkedHashMap<>();
     }
 
 
@@ -31,7 +33,13 @@ public class TypeTable {
 
     }
 
+    public void putString(String name, StringLiteralNode node){
+        stringMap.put(name, node);
+    }
 
+    public Map<String, ClassType> getClassTypeMap() {
+        return classTypeMap;
+    }
 
     public boolean find(String name){
         if (classTypeMap.containsKey(name)){
@@ -47,4 +55,7 @@ public class TypeTable {
         classTypeMap.keySet().stream().forEachOrdered(System.out::println);
     }
 
+    public Map<String, StringLiteralNode> getStringMap() {
+        return stringMap;
+    }
 }
