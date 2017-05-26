@@ -1,11 +1,9 @@
 package simplespy.compiler2017.FrontEnd;
 
-import com.sun.xml.internal.bind.v2.model.core.ID;
 import simplespy.compiler2017.Exception.CompilationError;
 import simplespy.compiler2017.NodeFamily.*;
 import simplespy.compiler2017.Exception.SemanticException;
 
-import java.net.IDN;
 import java.util.List;
 import java.util.Stack;
 
