@@ -63,9 +63,9 @@ public class Simpiler {
             }
 
 
-            IRGenerator irGenerator = new IRGenerator();
-            ast.accept(irGenerator);
-            IRRoot ir = irGenerator.getIR();
+        //    IRGenerator irGenerator = new IRGenerator();
+        //    ast.accept(irGenerator);
+        //    IRRoot ir = irGenerator.getIR();
 
 
         //    IRPrinter irPrinter = new IRPrinter(System.out);
