@@ -143,7 +143,7 @@ public class TypeResolver implements ASTVisitor {
         visit(node.init);
         visit(node.condition);
         visit(node.step);
-
+        visit(node.body);
     }
 
     @Override
@@ -195,7 +195,6 @@ public class TypeResolver implements ASTVisitor {
     @Override
     public void visit(NewNode node) {
         TypeNode type = node.getType();
-
         for (int i = 0; i < node.item.size(); ++i) {
             ExprNode it = node.item.get(i);
             if (it != null) {
@@ -206,9 +205,7 @@ public class TypeResolver implements ASTVisitor {
                 }
             }
             type = new ArrayType(type, it, node.getLoc());
-
         }
-
         node.type = type;
     }
 
@@ -226,6 +223,7 @@ public class TypeResolver implements ASTVisitor {
     @Override
     public void visit(ArefNode node) {
         visit(node.expr);
+        visit(node.index);
 
     }
 

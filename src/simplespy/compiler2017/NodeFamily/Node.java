@@ -28,7 +28,6 @@ public abstract class Node {
     }
 
     public void setScope(Scope scope) {
-
         this.scope = scope;
     }
 

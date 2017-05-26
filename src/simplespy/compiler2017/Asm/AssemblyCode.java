@@ -78,6 +78,8 @@ public class AssemblyCode {
         assemblies.add(new Directive("\tsection  .rodata"));
     }
 
+    public void syscall(){assemblies.add(new Instruction("syscall"));}
+
     public void jmp(Label label) {
         assemblies.add(new Instruction("jmp", label.getSymbol()));
     }
@@ -100,7 +102,14 @@ public class AssemblyCode {
     }
     public void neg(Operand src){assemblies.add(new Instruction("neg", src));}
     public void not(Operand src){assemblies.add(new Instruction("not", src));}
-    public void setcc(Operand src){assemblies.add(new Instruction("setcc",src));}
+
+    public void sete(Operand src){assemblies.add(new Instruction("sete",src));}
+    public void setne(Operand src){assemblies.add(new Instruction("setne",src));}
+    public void setl(Operand src){assemblies.add(new Instruction("setl",src));}
+    public void setle(Operand src){assemblies.add(new Instruction("setle",src));}
+    public void setg(Operand src){assemblies.add(new Instruction("setg",src));}
+    public void setge(Operand src){assemblies.add(new Instruction("setge",src));}
+
 
     public void movzx(Operand src, Operand dest){
         assemblies.add(new Instruction("movzx", src, dest));

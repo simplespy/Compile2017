@@ -19,6 +19,7 @@ public class Label extends Assembly {
         return symbol;
     }
 
+
     @Override
     public void accept(ASMVisitor visitor) {
         visitor.visit(this);

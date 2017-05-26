@@ -48,10 +48,7 @@ public class CodeGenerator implements IRVisitor {
             var.setAddress(sym);
             var.setMemoryReference(new DirectMemoryReference(sym));
         }
-
-
     }
-
 
     private void generateDataSection(AssemblyCode file, List<VarDecNode> gvars){
         file._data();
@@ -59,6 +56,10 @@ public class CodeGenerator implements IRVisitor {
         file.define(new ImmediateValue(0),new Symbol("\"%d\""));
         file.label("fmts");
         file.define(new ImmediateValue(0),new Symbol("\"%s\""));
+        file.label("initial_break");
+        file.define(new ImmediateValue(0));
+        file.label("current_break");
+        file.define(new ImmediateValue(0));
         gvars.stream().filter(x->x.init != null).forEachOrdered(x ->{
             Symbol sym = file.label(x.getName());
             x.setAddress(sym );
@@ -100,7 +101,6 @@ public class CodeGenerator implements IRVisitor {
             file.label(x);
             compileFunctionBody(file, funcs.get(x));
         });
-
     }
 
     private void compileFunctionBody(AssemblyCode file, FuncDefNode func){
@@ -120,8 +120,6 @@ public class CodeGenerator implements IRVisitor {
     static final private int PARAM_START_WORD = 2;
     static final public int STACK_WORD_SIZE = 8;
 
-
-
     private void locateParameters(List<VarDecNode> paras){
         int numWords = PARAM_START_WORD;
         for(VarDecNode var : paras){
@@ -131,10 +129,12 @@ public class CodeGenerator implements IRVisitor {
     }
 
     private AssemblyCode acfunc;
-
+    private Label epilogue;
     private AssemblyCode compileStmts(FuncDefNode func){
         acfunc = new AssemblyCode();
+        epilogue = new Label();
         func.ir.stream().forEachOrdered(this::visit);
+        acfunc.label(epilogue);
         return acfunc;
     }
 
@@ -155,8 +155,6 @@ public class CodeGenerator implements IRVisitor {
         result.remove(bp());
         return result;
     }
-
-
 
     private void fixLocalVariableOffsets(Scope scope, int len){
         for (Node var : scope.getEntities().values()){
@@ -181,7 +179,6 @@ public class CodeGenerator implements IRVisitor {
 
     }
 
-
     private void prologue(AssemblyCode file, List<Register> saveRegs, int frameSize){
         file.push(bp());
         file.mov(sp(), bp());
@@ -196,9 +193,6 @@ public class CodeGenerator implements IRVisitor {
         file.ret();
     }
 
-
-
-
     private void compileExpr(Expr node, Register reg){
         if(node instanceof Var){
             acfunc.mov(((Var)node).memref(), reg);
@@ -207,11 +201,9 @@ public class CodeGenerator implements IRVisitor {
             acfunc.mov(new ImmediateValue(((Int)node).getValue()), reg);
         }
         else if (node instanceof Str){
-
             acfunc.mov(stringPool.get(((Str)node).getValue()).getMemoryReference(), reg);
         }
     }
-
 
     @Override
     public void visit(ExprStmt node) {
@@ -265,16 +257,16 @@ public class CodeGenerator implements IRVisitor {
                 // Comparison operators
                 acfunc.cmp(right, ax());
                 switch (op) {
-                    case EQ:      acfunc.je(thenLabel); break;
-                    case NE:      acfunc.jne(thenLabel); break;
-                    case GT:      acfunc.jg(thenLabel); break;
-                    case GE:    acfunc.jge(thenLabel); break;
-                    case LT:      acfunc.jl(thenLabel); break;
-                    case LE:    acfunc.jle(thenLabel); break;
+                    case EQ:    acfunc.sete (al()); break;
+                    case NE:    acfunc.setne(al()); break;
+                    case GT:    acfunc.setg (al()); break;
+                    case GE:    acfunc.setge(al()); break;
+                    case LT:    acfunc.setl (al()); break;
+                    case LE:    acfunc.setle(al()); break;
                     default:
                         throw new Error("unknown binary operator: " + op);
                 }
-                acfunc.jmp(elseLabel);
+                acfunc.movzx(al(), left);
         }
     }
 
@@ -331,12 +323,7 @@ public class CodeGenerator implements IRVisitor {
                 ++i;
             }
             acfunc.call(new Symbol(transFuncName(funcName)));
-
         }
-
-
-
-
     }
 
     private String transFuncName(String name){
@@ -350,20 +337,17 @@ public class CodeGenerator implements IRVisitor {
         return externName;
     }
 
-    private Label thenLabel;
-    private Label elseLabel;
-
     @Override
     public void visit(CJump node) {
-        thenLabel = node.getThen();
-        elseLabel = node.getOtherwise();
         visit(node.getCond());
+        acfunc.test(ax(),ax());
+        acfunc.jnz(node.getThen());
+        acfunc.jmp(node.getOtherwise());
     }
-
-
 
     @Override
     public void visit(Expr node) {
+        if (node == null) return;
         node.accept(this);
     }
 
@@ -380,21 +364,12 @@ public class CodeGenerator implements IRVisitor {
     @Override
     public void visit(LabelStmt node) {acfunc.label(node.label);}
 
-
-
-
-
-
-
-
-
-
     @Override
     public void visit(Return node) {
         if (node.getExpr() != null){
             node.getExpr().accept(this);
         }
-        //acfunc.jmp(epilogue);
+        acfunc.jmp(epilogue);
     }
 
     @Override
@@ -412,7 +387,7 @@ public class CodeGenerator implements IRVisitor {
                 break;
             case LOGICAL_NOT:
                 acfunc.test(ax(),ax());
-              //  acfunc.sete(al);
+                acfunc.sete(al());
                 acfunc.movzx(al(),ax());
             case BITWISE_NOT:
                 acfunc.not(ax());
@@ -424,7 +399,6 @@ public class CodeGenerator implements IRVisitor {
     @Override
     public void visit(Var node) {
         acfunc.mov(node.memref(), ax());
-
     }
 
     @Override
@@ -449,19 +423,15 @@ public class CodeGenerator implements IRVisitor {
             acfunc.virtualPop(ax());
             acfunc.mov(ax(), new IndirectMemoryReference(0,cx()));
         }
-
-
     }
 
     @Override
-    public void visit(FuncDefNode node) {
-
-    }
+    public void visit(FuncDefNode node) {}
 
     @Override
     public void visit(Stmt node) {
+        if (node == null) return;
         node.accept(this);
-
     }
 
     @Override
@@ -473,8 +443,28 @@ public class CodeGenerator implements IRVisitor {
         }
     }
 
+    @Override
+    public void visit(Mem node) {
+        visit(node.expr);
+        acfunc.mov(new IndirectMemoryReference(0, ax()), ax());
+    }
 
-
+    @Override
+    public void visit(Malloc node) {
+        acfunc.mov(new ImmediateValue(12), ax());
+        acfunc.mov(new ImmediateValue(0), di());
+        acfunc.syscall();
+        DirectMemoryReference initial = new DirectMemoryReference(new Symbol("initial_break"));
+        DirectMemoryReference current = new DirectMemoryReference(new Symbol("current_break"));
+        acfunc.mov(ax(), initial);
+        acfunc.mov(ax(), current);
+        visit(node.spaceSize);
+        acfunc.mov(current, di());
+        acfunc.add(ax(),di());
+        acfunc.mov(new ImmediateValue(12), ax());
+        acfunc.syscall();
+        acfunc.mov(ax(),current);
+    }
 
     private int locateLocalVars(Scope scope){
         return locateLocalVars(scope, 0);
@@ -488,7 +478,7 @@ public class CodeGenerator implements IRVisitor {
             }else if (vari instanceof VarDecNode){
                 var = (VarDecNode) vari;
             }else break;
-            len = AsmUtils.align(len + var.getType().size(), 16);
+            len = AsmUtils.align(len + 8, 16);
             var.setMemoryReference(new IndirectMemoryReference(-len, bp()));
 
         }
@@ -525,16 +515,12 @@ public class CodeGenerator implements IRVisitor {
             Register.RegisterClass.BX, Register.RegisterClass.BP,
             Register.RegisterClass.SI, Register.RegisterClass.DI
     };
-
-
     class StackFrame{
         public List<Register> saveRegs;
         public int lvarSize;
         public int tempSize;
 
-        public StackFrame(){
-
-        }
+        public StackFrame(){}
         public int saveRegsSize(){
             return saveRegs.size() * STACK_WORD_SIZE;
         }

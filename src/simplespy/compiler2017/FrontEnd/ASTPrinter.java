@@ -273,8 +273,12 @@ public class ASTPrinter implements ASTVisitor {
     @Override
     public void visit(NewNode node) {
         if (node == null) return;
-        out.println(indent.toString() + "<<" + node.getClass().getSimpleName() + ">>" );;
+        out.println(indent.toString() + "<<" + node.getClass().getSimpleName() + ">>" );
+        out.println(indent.toString() + "Type : ");
+        inc();
         visit(node.type);
+        dec();
+        out.println(indent.toString() + "Dimension : ");
         inc();
         node.item.stream().forEachOrdered(this::visit);
         dec();

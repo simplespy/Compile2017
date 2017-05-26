@@ -12,9 +12,6 @@ public abstract class TypeNode extends Node {
     public TYPENAME typename;
 
     abstract public TypeNode getBaseType();
-    abstract public int getDim();
-    int length;
-    abstract public int getLen();
 
     public TYPENAME getTypeName() {
         return typename;
@@ -28,7 +25,8 @@ public abstract class TypeNode extends Node {
             case "VOID":
                 return 1;
             default:
-                return 1;
+                return 8;
         }
     }
+
 }

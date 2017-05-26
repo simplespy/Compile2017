@@ -82,6 +82,7 @@ public class IRPrinter implements IRVisitor {
 
     @Override
     public void visit(Expr node) {
+        if (node == null) return;
         node.accept(this);
     }
 
@@ -107,12 +108,14 @@ public class IRPrinter implements IRVisitor {
 
     @Override
     public void visit(Jump node) {
+        out.println(indent.toString() + "<<" + node.getClass().getSimpleName() + ">>" );
 
     }
 
     @Override
     public void visit(LabelStmt node) {
-
+        out.println(indent.toString() + "<<" + node.getClass().getSimpleName() + ">>" );
+        out.println(indent.toString() + "Name : " + node.label.getSymbol().name);
 
     }
 
@@ -156,14 +159,6 @@ public class IRPrinter implements IRVisitor {
         if (node == null) return;
         out.println(indent.toString() + "<<" + node.getClass().getSimpleName() + ">>" + node.getLoc().toString());
         out.println(indent.toString() + "Name : " + node.getName());
-       // out.println(indent.toString() + "Type : ");
-      /*  inc();
-        visit(node.type);
-        dec();
-        out.println(indent.toString() + "Init : ");
-        inc();
-        visit(node.init);
-        dec();*/
     }
 
     @Override
@@ -198,5 +193,19 @@ public class IRPrinter implements IRVisitor {
         if (node == null) return;
         out.println(indent.toString() + "<<" + node.getClass().getSimpleName() + ">>");
         out.println(indent.toString() + "Name : " + node.entity.getName());
+    }
+
+    @Override
+    public void visit(Mem node) {
+        out.println(indent.toString() + "<<" + node.getClass().getSimpleName() + ">>" );
+
+
+    }
+
+    @Override
+    public void visit(Malloc node) {
+        out.println(indent.toString() + "<<" + node.getClass().getSimpleName() + ">>" );
+        visit(node.spaceSize);
+
     }
 }

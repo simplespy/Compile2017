@@ -39,11 +39,6 @@ public class GlobalScope extends Scope {
         FuncDefNode getInt = new FuncDefNode(new BaseType(TypeNode.TYPENAME.INT, null), "getInt", new ArrayList<>(), new BlockNode(null), null);
         FuncDefNode toString = new FuncDefNode(new BaseType(TypeNode.TYPENAME.STRING, null), "toString", paras2, new BlockNode(null), null);
 
-        /*entities.put("print", print);
-        entities.put("println", println);
-        entities.put("getString", getString);
-        entities.put("getInt", getInt);
-        entities.put("toString", toString);*/
         addEntity(print);
         addEntity(println);
         addEntity(getString);

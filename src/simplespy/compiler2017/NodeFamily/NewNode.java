@@ -40,7 +40,9 @@ public class NewNode extends ExprNode {
     }
 
     @Override
+
     public TypeNode getType() {
         return type;
     }
+
 }

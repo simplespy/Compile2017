@@ -8,7 +8,6 @@ import simplespy.compiler2017.FrontEnd.ASTVisitor;
 public class BaseType extends TypeNode {
     public TYPENAME type;
     public final Location loc;
-    int length;
 
 
     public Location getLoc() {
@@ -18,12 +17,6 @@ public class BaseType extends TypeNode {
     public BaseType(TYPENAME type, Location loc) {
         this.type = type;
         this.loc = loc;
-        this.length = 1;
-    }
-
-    @Override
-    public int getLen() {
-        return length;
     }
 
     @Override
@@ -31,10 +24,6 @@ public class BaseType extends TypeNode {
         return this;
     }
 
-    @Override
-    public int getDim() {
-        return 0;
-    }
 
 
     @Override

@@ -26,4 +26,6 @@ public interface IRVisitor {
     void visit(FuncDefNode node);
     void visit(Stmt node);
     void visit(Addr node);
+    void visit(Mem node);
+    void visit(Malloc node);
 }

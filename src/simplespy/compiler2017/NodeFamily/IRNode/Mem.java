@@ -6,7 +6,7 @@ import simplespy.compiler2017.FrontEnd.IRVisitor;
  * Created by spy on 5/17/17.
  */
 public class Mem extends Expr {
-    protected Expr expr;
+    public Expr expr;
     public Mem(Expr expr){
         this.expr = expr;
     }

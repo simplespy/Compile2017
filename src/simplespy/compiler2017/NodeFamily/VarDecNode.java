@@ -11,7 +11,7 @@ import simplespy.compiler2017.NodeFamily.IRNode.Expr;
  * Created by spy on 17/3/25.
  */
 public class VarDecNode extends ASTBranch {
-    private String name;
+    public String name;
     public TypeNode type;
     public ExprNode init;
     public final Location loc;

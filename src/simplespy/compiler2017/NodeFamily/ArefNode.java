@@ -53,11 +53,4 @@ public class ArefNode extends ExprNode {
         return newtype;
     }
 
-    public int getDim(){
-        return this.expr.getType().getDim();
-    }
-
-    public int getLen(){
-        return this.expr.getType().getLen();
-    }
 }

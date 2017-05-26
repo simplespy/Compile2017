@@ -1,5 +1,6 @@
 package simplespy.compiler2017.FrontEnd;
 
+import com.sun.xml.internal.bind.v2.model.core.ID;
 import simplespy.compiler2017.Exception.CompilationError;
 import simplespy.compiler2017.NodeFamily.*;
 import simplespy.compiler2017.Exception.SemanticException;
@@ -215,6 +216,7 @@ public class ScopeBuilder implements ASTVisitor {
     @Override
     public void visit(ArefNode node) {
         visit(node.expr);
+        visit(node.getIndex());
     }
 
     @Override
@@ -227,6 +229,11 @@ public class ScopeBuilder implements ASTVisitor {
             }
             node.setScope(currentClass);
         }
+        /*if (node.expr.getType() instanceof ClassType){
+            ((ClassType) node.expr.getType()).name
+        }
+
+        node.member.setScope();*/
     }
 
     @Override

@@ -27,9 +27,9 @@ public class Simpiler {
     public static void main(String[] argv) throws Exception {
         try {
             InputStream is = System.in;
-            //InputStream is = new FileInputStream("Test/SingleStmt.txt");//System.in;
+          //  InputStream is = new FileInputStream("Test/SingleStmt.txt");//System.in;
             CompilationError.initialize();
-            //PrintStream os = new PrintStream("/Users/spy/programs/x86/first.asm");
+            PrintStream os = new PrintStream("/Users/spy/programs/x86/first.asm");
 
             ANTLRInputStream input = new ANTLRInputStream(is);
             SimpilerLexer lexer = new SimpilerLexer(input);
@@ -43,8 +43,8 @@ public class Simpiler {
             walker.walk(builder, tree);
             ASTRoot ast = builder.getAst();
 
-            //ASTPrinter printer = new ASTPrinter(System.out);
-            //ast.accept(printer);
+         //   ASTPrinter printer = new ASTPrinter(os);
+           // ast.accept(printer);
 
             ScopeBuilder scopeBuilder = new ScopeBuilder();
             ast.accept(scopeBuilder);
@@ -68,15 +68,15 @@ public class Simpiler {
             IRRoot ir = irGenerator.getIR();
 
 
-            //IRPrinter irPrinter = new IRPrinter(System.out);
-            //ir.accept(irPrinter);
+        //    IRPrinter irPrinter = new IRPrinter(System.out);
+          //  ir.accept(irPrinter);
 
-            CodeGenerator codeGenerator = new CodeGenerator();
-            ir.accept(codeGenerator);
-            AssemblyCode ac = codeGenerator.getAC();
+         //   CodeGenerator codeGenerator = new CodeGenerator();
+        //    ir.accept(codeGenerator);
+        //    AssemblyCode ac = codeGenerator.getAC();
 
-            ASMPrinter asmPrinter = new ASMPrinter(System.out);
-            ac.accept(asmPrinter);
+           // ASMPrinter asmPrinter = new ASMPrinter(os);
+          //  ac.accept(asmPrinter);
 
         } catch (Exception e) {
             System.exit(1);

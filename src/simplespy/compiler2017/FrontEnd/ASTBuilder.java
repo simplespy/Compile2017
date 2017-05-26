@@ -95,7 +95,7 @@ public class ASTBuilder extends SimpilerBaseListener {
         ClassDefNode classDefNode = new ClassDefNode(name, getLocation(ctx));
 
         ClassType classType = new ClassType(name, getLocation(ctx));
-        ast.typeTable.put(name, classType, new LocalScope(ast.globalScope));
+        ast.typeTable.put(name, classType, new LocalScope(ast.globalScope), classDefNode);
 
         ctx.classSection().stream().map(nodeMap::get).forEachOrdered(classDefNode::add);
         nodeMap.put(ctx, classDefNode);
