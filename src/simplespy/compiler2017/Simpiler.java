@@ -71,12 +71,12 @@ public class Simpiler {
             //IRPrinter irPrinter = new IRPrinter(System.out);
             //ir.accept(irPrinter);
 
-            CodeGenerator codeGenerator = new CodeGenerator();
-            ir.accept(codeGenerator);
-            AssemblyCode ac = codeGenerator.getAC();
+            //CodeGenerator codeGenerator = new CodeGenerator();
+            //ir.accept(codeGenerator);
+            //AssemblyCode ac = codeGenerator.getAC();
 
-            ASMPrinter asmPrinter = new ASMPrinter(System.out);
-            ac.accept(asmPrinter);
+            //ASMPrinter asmPrinter = new ASMPrinter(System.out);
+            //ac.accept(asmPrinter);
 
         } catch (Exception e) {
             System.exit(1);
