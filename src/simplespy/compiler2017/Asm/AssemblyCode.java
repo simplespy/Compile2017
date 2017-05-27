@@ -45,6 +45,7 @@ public class AssemblyCode {
     }
 
     public void _bss(){bss.add("\tsection  .bss");}
+
     public void addBss(String string){bss.add(string);}
 
     public List<String> getBss() {

@@ -44,7 +44,7 @@ public class CodeGenerator implements IRVisitor {
         generateTextSection(ac, node.funcs);
     }
 
-    private void locateSymbols(IRRoot ir) {
+    private void locateSymbols(IRRoot ir) {//global variables
         for (VarDecNode var : ir.vars){
             Symbol sym = new Symbol(var.getName());
             var.setAddress(sym);
@@ -70,6 +70,7 @@ public class CodeGenerator implements IRVisitor {
         });
         file._bss();
         gvars.stream().filter(x->x.init == null).forEachOrdered(x ->{
+            file.addBss(x.getName()+"\tresd\t1");
         });
         gvars.stream().forEachOrdered(this::visit);
     }
