@@ -4,7 +4,9 @@ import simplespy.compiler2017.FrontEnd.ASTVisitor;
 import simplespy.compiler2017.NodeFamily.IRNode.Expr;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by spy on 17/3/25.
@@ -13,6 +15,9 @@ public class ClassDefNode extends ASTBranch {
     public final String name;
     public final List<ASTBranch> members;//Var or Func
     public final Location loc;
+    public Map<String, FuncDefNode> funcs = new LinkedHashMap<>();
+    public List<VarDecNode> vars = new ArrayList<>();
+    public ConstructorNode constructor;
 
     public Location getLoc() {
         return loc;
@@ -21,7 +26,6 @@ public class ClassDefNode extends ASTBranch {
         this.name = name;
         this.loc = loc;
         members = new ArrayList<>();
-
     }
     public void add(Object member){
         if(member instanceof ASTBranch) members.add((ASTBranch) member);
@@ -51,6 +55,15 @@ public class ClassDefNode extends ASTBranch {
             }
         }
         throw new Error("there is noe such member");
+    }
 
+    public void addFunc(FuncDefNode func){
+        this.funcs.put(func.name, func);
+    }
+    public void addVar(VarDecNode var){
+        this.vars.add(var);
+    }
+    public int getOffset(VarDecNode var){
+        return vars.indexOf(var);
     }
 }

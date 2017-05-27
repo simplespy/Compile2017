@@ -2,6 +2,7 @@ package simplespy.compiler2017.NodeFamily.IRNode;
 
 import simplespy.compiler2017.FrontEnd.IRVisitor;
 import simplespy.compiler2017.NodeFamily.BinaryOpNode;
+import simplespy.compiler2017.NodeFamily.Node;
 
 /**
  * Created by spy on 17/4/15.
@@ -32,5 +33,8 @@ public class Bin extends Expr {
 
     public BinaryOpNode.BinaryOp getOp() {
         return op;
+    }
+    public Node getEntityForce(){
+        return left.getEntityForce();
     }
 }

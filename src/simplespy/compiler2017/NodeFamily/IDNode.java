@@ -52,6 +52,11 @@ public class IDNode extends ExprNode {
         if (entity instanceof VarDecInBlockNode) return ((VarDecInBlockNode) entity).getVardec();
         return entity;
     }
+    public boolean isLoadable() {
+        if (this.getEntity() instanceof FuncDefNode) return false;
+        if (this.type instanceof ArrayType) return false;
+        return true;
+    }
 
 
 }

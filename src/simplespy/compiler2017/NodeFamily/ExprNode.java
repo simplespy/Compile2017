@@ -6,6 +6,5 @@ package simplespy.compiler2017.NodeFamily;
  */
 public abstract class ExprNode extends StmtNode {
     public abstract boolean Lv();
-
 }
   

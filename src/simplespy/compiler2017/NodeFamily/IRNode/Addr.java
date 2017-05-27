@@ -18,8 +18,9 @@ public class Addr extends Expr {
     public Var refNode() {
         return new Var(entity);
     }
-
-    @Override
+    public Node getEntityForce(){
+        return entity;
+    }    @Override
     public void accept(IRVisitor visitor) {
         visitor.visit(this);
     }

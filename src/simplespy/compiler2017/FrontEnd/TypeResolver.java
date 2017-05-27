@@ -223,6 +223,9 @@ public class TypeResolver implements ASTVisitor {
     @Override
     public void visit(ArefNode node) {
         visit(node.expr);
+        if (node.expr.type instanceof ArrayType){
+            node.type = ((ArrayType) node.expr.type).baseType;
+        }
         visit(node.index);
 
     }

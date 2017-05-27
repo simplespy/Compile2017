@@ -71,9 +71,9 @@ public class Test {
                 IRPrinter irPrinter = new IRPrinter(os);
                 ir.accept(irPrinter);
 
-                //CodeGenerator codeGenerator = new CodeGenerator();
-              //  ir.accept(codeGenerator);
-               // AssemblyCode ac = codeGenerator.getAC();
+                CodeGenerator codeGenerator = new CodeGenerator();
+                ir.accept(codeGenerator);
+                AssemblyCode ac = codeGenerator.getAC();
 
              //   ASMPrinter asmPrinter = new ASMPrinter(os);
               //  ac.accept(asmPrinter);

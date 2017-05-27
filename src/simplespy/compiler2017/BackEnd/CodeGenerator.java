@@ -1,6 +1,7 @@
 package simplespy.compiler2017.BackEnd;
 
 import simplespy.compiler2017.Asm.*;
+import simplespy.compiler2017.FrontEnd.GlobalScope;
 import simplespy.compiler2017.FrontEnd.IRVisitor;
 import simplespy.compiler2017.FrontEnd.Scope;
 import simplespy.compiler2017.NodeFamily.*;
@@ -18,18 +19,19 @@ import java.util.stream.Collectors;
  * Created by spy on 5/18/17.
  */
 public class CodeGenerator implements IRVisitor {
-    public static AssemblyCode ac;
+    public  AssemblyCode ac;
     private Map<String, StringLiteralNode> stringPool;
-    String currentLabel;
     int numofGlobalString;
+    GlobalScope gl;
 
-    public static AssemblyCode getAC() {
+    public AssemblyCode getAC() {
         return ac;
     }
 
     @Override
     public void visit(IRRoot node) {
         stringPool = node.typeTable.getStringMap();
+        gl = node.scope;
         locateSymbols(node);
         ac = new AssemblyCode();
         if (node.vars != null){
@@ -60,7 +62,7 @@ public class CodeGenerator implements IRVisitor {
         file.define(new ImmediateValue(0));
         file.label("current_break");
         file.define(new ImmediateValue(0));
-        gvars.stream().filter(x->x.init != null).forEachOrdered(x ->{
+        gvars.stream().filter(x->x.init != null && !(x.init instanceof NullLiteralNode)).forEachOrdered(x ->{
             Symbol sym = file.label(x.getName());
             x.setAddress(sym );
             x.setMemoryReference(new DirectMemoryReference(sym));
@@ -79,9 +81,38 @@ public class CodeGenerator implements IRVisitor {
             ac.define(new Symbol(((Str) node.ir).getValue()));
             stringPool.get(((Str) node.ir).getValue()).isGlobal = true;
             numofGlobalString++;
-        }else {
-            throw new Error("unknown Initializer");
+        }else if (node.ir instanceof Malloc) {
+            visit(node.ir);
+        }else if (node.ir instanceof Bin){
+            ac.define(new ImmediateValue(calculate((Bin) node.ir)));
+
         }
+         else{
+                throw new Error("unknown Initializer");
+        }
+    }
+
+    private int calculate(Bin node){
+        if (node.getLeft() instanceof Int && node.getRight() instanceof Int){
+            int left = ((Int) node.getLeft()).getValue();
+            int right = ((Int) node.getRight()).getValue();
+            switch (node.getOp()) {
+                case ADD:   return left + right;
+                case SUB:   return left - right;
+                case MUL:   return left * right;
+                case DIV:   return left / right;
+                case MOD:   return left % right;
+                case BITWISE_AND:   return left & right;
+                case BITWISE_OR:    return left | right;
+                case XOR:   return left ^ right;
+                case SHL:   return left >> right;
+                case SHR:   return left << right;
+            }
+        }else if (node.getLeft() instanceof Int && node.getRight() instanceof Expr){
+        }else{
+            throw new Error("constant");
+        }
+        return 0;
     }
 
     private void generateReadOnlyDataSection(AssemblyCode file){
@@ -275,11 +306,11 @@ public class CodeGenerator implements IRVisitor {
 
     @Override
     public void visit(Call node) {
-        String funcName = node.getName().getEntityForce().getName();
-
+        String funcName = node.getEntityForce().getName();
+        Node entity = node.getEntityForce();
         Register[] paras = {di(), si(), dx(), cx(), r8(), r9()};
 
-        if (funcName.equals("getInt")){
+        if (funcName.equals("getInt") && entity.equals(gl.get(funcName))){
             Symbol var = new Symbol(varBase + varnum++);
             ac.addBss(var.name+':' + "resd 1" );
             acfunc.mov(var, si());
@@ -288,7 +319,7 @@ public class CodeGenerator implements IRVisitor {
             acfunc.mov(var,ax());
         }
 
-        else if (funcName.equals("getString")){
+        else if (funcName.equals("getString") && entity.equals(gl.get(funcName))){
             Symbol var = new Symbol(varBase + varnum++);
             ac.addBss(var.name+':' + "resd 20" );
             acfunc.mov(var, si());
@@ -298,7 +329,7 @@ public class CodeGenerator implements IRVisitor {
 
         }
 
-        else if (funcName.equals("toString")){
+        else if (funcName.equals("toString") && entity.equals(gl.get(funcName))){
             Symbol var = new Symbol(varBase + varnum++);
             ac.addBss(var.name+':' + "resd 20" );
             if (node.getArgs().size() == 1){
@@ -406,6 +437,7 @@ public class CodeGenerator implements IRVisitor {
 
     @Override
     public void visit(Assign node) {
+        if (node.getRhs() == null) return;
         if(node.getLhs().isAddr() && ((Addr)node.getLhs()).getMemoryReference() != null){
             visit(node.getRhs());
             acfunc.mov(ax(), ((Addr) node.getLhs()).getMemoryReference());
@@ -451,6 +483,7 @@ public class CodeGenerator implements IRVisitor {
 
     @Override
     public void visit(Malloc node) {
+        if (acfunc == null) acfunc = ac;
         acfunc.mov(new ImmediateValue(12), ax());
         acfunc.mov(new ImmediateValue(0), di());
         acfunc.syscall();

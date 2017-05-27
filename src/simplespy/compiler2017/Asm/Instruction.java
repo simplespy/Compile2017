@@ -28,6 +28,7 @@ public class Instruction extends Assembly {
 
     public void collectStatistics(Statistics stats) {
         stats.instructionUsed(op);
+        if (operands == null) return;
         for (int i = 0; i < operands.length; i++) {
             operands[i].collectStatistics(stats);
         }

@@ -19,10 +19,11 @@ public class Malloc extends Expr {
         return entity;
     }
 
-
+    public Expr addressNode(){
+        return this;
+    }
 
     @Override
     public void accept(IRVisitor visitor) {
-
-    }
+        visitor.visit(this);    }
 }

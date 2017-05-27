@@ -205,7 +205,9 @@ public class IRPrinter implements IRVisitor {
     @Override
     public void visit(Malloc node) {
         out.println(indent.toString() + "<<" + node.getClass().getSimpleName() + ">>" );
+        out.println(indent.toString() + "Size : " );
+        inc();
         visit(node.spaceSize);
-
+        dec();
     }
 }

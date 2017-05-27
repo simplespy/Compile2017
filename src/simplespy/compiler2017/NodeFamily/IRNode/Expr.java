@@ -8,9 +8,6 @@ import simplespy.compiler2017.NodeFamily.Node;
  * Created by spy on 17/4/15.
  */
 abstract public class Expr   {
-    public Expr addressNode(){
-        return null;
-    }
     abstract public void accept(IRVisitor visitor);
     public Node getEntityForce(){
         return null;
@@ -22,4 +19,7 @@ abstract public class Expr   {
         return false;
     }
     public boolean isVar(){return false;}
+    public Expr addressNode() {
+        throw new Error("unexpected node for LHS: " + getClass());
+    }
 }

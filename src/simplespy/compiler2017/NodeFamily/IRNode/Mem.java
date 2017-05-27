@@ -1,6 +1,7 @@
 package simplespy.compiler2017.NodeFamily.IRNode;
 
 import simplespy.compiler2017.FrontEnd.IRVisitor;
+import simplespy.compiler2017.NodeFamily.Node;
 
 /**
  * Created by spy on 5/17/17.
@@ -16,5 +17,8 @@ public class Mem extends Expr {
     @Override
     public void accept(IRVisitor visitor) {
         visitor.visit(this);
+    }
+    public Node getEntityForce(){
+        return expr.getEntityForce();
     }
 }

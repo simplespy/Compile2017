@@ -40,17 +40,31 @@ public class IRGenerator implements ASTVisitor {
 
     @Override
     public void visit(ClassDefNode node) {
-        node.getMembers().stream().filter(x->x instanceof FuncDefNode || x instanceof ConstructorNode).forEachOrdered(this::visit);
+        for (ASTBranch member : node.getMembers()){
+            if (member instanceof FuncDefNode){
+                ((FuncDefNode) member).setIr(compileFunctionBody((FuncDefNode) member));
+                node.addFunc((FuncDefNode) member);
+            }else if (member instanceof VarDecNode){
+                node.addVar((VarDecNode) member);
+            }else if (member instanceof ConstructorNode){
+                stmts = new ArrayList<>();
+                scopeStack = new Stack<>();
+                breakStack = new Stack<>();
+                continueStack = new Stack<>();
+                ((ConstructorNode)member).body.accept(this);
+                ((ConstructorNode)member).setIr(stmts);
+                node.constructor = (ConstructorNode)member;
+            }
+        }
     }
 
-
     @Override
-    public void visit(FuncDefNode node) {
+    public void visit(FuncDefNode node) {//global functions
         node.setIr(compileFunctionBody(node));
-        ir.funcs.put(node.getName(), node);
+        ir.funcs.put(node.name, node);
     }
     @Override
-    public void visit(VarDecNode node) {
+    public void visit(VarDecNode node) {//global variables
         if (node.init != null) {
             node.setIr(transformExpr(node.init));
         }
@@ -72,10 +86,6 @@ public class IRGenerator implements ASTVisitor {
         return stmts;
     }
 
-
-
-
-
     @Override
     public void visit(TypeNode node) {}
     @Override
@@ -85,19 +95,7 @@ public class IRGenerator implements ASTVisitor {
     @Override
     public void visit(BaseType node) {}
     @Override
-    public void visit(ConstructorNode node) {
-        String name = node.name+"_constructor";
-
-        FuncDefNode consturctor = new FuncDefNode(null, name, null, node.body, node.getLoc());
-        stmts = new ArrayList<>();
-        scopeStack = new Stack<>();
-        breakStack = new Stack<>();
-        continueStack = new Stack<>();
-        node.body.accept(this);
-        node.setIr(stmts);
-        consturctor.setIr(stmts);
-        ir.funcs.put(name, consturctor);
-    }
+    public void visit(ConstructorNode node) {}
 
     @Override
     public void visit(StmtNode node) {
@@ -107,13 +105,19 @@ public class IRGenerator implements ASTVisitor {
     @Override
     public void visit(BlockNode node) {
         scopeStack.push(node.scope);
-        node.getStmts().stream().forEachOrdered(this::visit);
+        node.getStmts().stream().forEachOrdered(x->{
+            visit(x);
+            if (x instanceof VarDecInBlockNode){
+                node.addVar(((VarDecInBlockNode) x).getVardec());
+            }
+        });
         scopeStack.pop();
     }
+
     @Override
-    public void visit(VarDecInBlockNode node) {
+    public void visit(VarDecInBlockNode node) {//local variables
         if (node.getVardec().init != null) {
-            stmts.add(new Assign(node.getLoc(), new Addr(node.getVardec()), transformExpr(node.getVardec().init)));
+            assign(node.getLoc(), ref(node.getVardec()), transformExpr(node.getVardec().init));
         }
     }
 
@@ -132,7 +136,6 @@ public class IRGenerator implements ASTVisitor {
         continueStack.pop();
         stmts.add(new Jump(null, begLabel));
         stmts.add(new LabelStmt(null, endLabel));
-
     }
 
     @Override
@@ -156,7 +159,6 @@ public class IRGenerator implements ASTVisitor {
         visit(node.step);
         stmts.add(new Jump(null, begLabel));
         stmts.add(new LabelStmt(null, endLabel));
-
     }
 
     @Override
@@ -176,7 +178,6 @@ public class IRGenerator implements ASTVisitor {
             node.then.accept(this);
             stmts.add(new LabelStmt(null, endLabel));
         } else {
-
             stmts.add(new CJump(node.getLoc(), cond, thenLabel, elseLabel));
             stmts.add(new LabelStmt(null, thenLabel));
             node.then.accept(this);
@@ -184,7 +185,6 @@ public class IRGenerator implements ASTVisitor {
             stmts.add(new LabelStmt(null, elseLabel));
             node.otherwise.accept(this);
             stmts.add(new LabelStmt(null, endLabel));
-
         }
 
     }
@@ -196,7 +196,6 @@ public class IRGenerator implements ASTVisitor {
         } else {
             stmts.add(new Jump(node.getLoc(), breakStack.peek()));
         }
-
     }
 
     @Override
@@ -216,33 +215,30 @@ public class IRGenerator implements ASTVisitor {
 
     @Override
     public void visit(BinaryOpNode node) {
-
         Expr right = transformExpr(node.getRight());
         Expr left = transformExpr(node.getLeft());
         if (node.getOp().equals(BinaryOpNode.BinaryOp.LOGICAL_AND)){
             Label rightLabel = new Label();
             Label endLabel = new Label();
             VarDecNode var = tmpVar(node.type);
-
-            stmts.add(new Assign(node.getLoc(), new Addr(var), left));
-            stmts.add(new CJump(node.getLoc(), new Var(var), rightLabel, endLabel));
+            assign(node.getLoc(),ref(var),left);
+            stmts.add(new CJump(node.getLoc(), ref(var), rightLabel, endLabel));
             stmts.add(new LabelStmt(node.getLoc(), rightLabel));
-            stmts.add(new Assign(node.getLoc(), new Addr(var), right));
+            assign(node.getLoc(), ref(var), right);
             stmts.add(new LabelStmt(node.getLoc(), endLabel));
-            returnExpr = isStatement() ? null : new Var(var);
+            returnExpr = isStatement() ? null : ref(var);
         }else if (node.getOp().equals(BinaryOpNode.BinaryOp.LOGICAL_OR)){
             Label rightLabel = new Label();
             Label endLabel = new Label();
             VarDecNode var = tmpVar(node.type);
-
-            stmts.add(new Assign(node.getLoc(), new Addr(var), left));
-            stmts.add(new CJump(node.getLoc(), new Var(var), endLabel, rightLabel));
+            assign(node.getLoc(),ref(var),left);
+            stmts.add(new CJump(node.getLoc(), ref(var), endLabel, rightLabel));
             stmts.add(new LabelStmt(node.getLoc(), rightLabel));
-            stmts.add(new Assign(node.getLoc(), new Addr(var), right));
+            assign(node.getLoc(), ref(var), right);
             stmts.add(new LabelStmt(node.getLoc(), endLabel));
-            returnExpr = isStatement() ? null : new Var(var);
+            returnExpr = isStatement() ? null : ref(var);
         }else if (node.getOp().equals(BinaryOpNode.BinaryOp.ASSIGN)) {
-            stmts.add(new Assign(node.getLoc(), left.addressNode(), right));
+            assign(node.getLoc(), left, right);
             returnExpr = null;
         }
         else returnExpr = new Bin(node.getOp(), left, right);
@@ -250,36 +246,61 @@ public class IRGenerator implements ASTVisitor {
 
     @Override
     public void visit(UnaryOpNode node) {
-        if (node.getOp() == UnaryOpNode.UnaryOp.POS) {
+        if (node.getOp().equals(UnaryOpNode.UnaryOp.POS)) {
             returnExpr = transformExpr(node.body);
-        } else if (node.getOp() == UnaryOpNode.UnaryOp.INC) {
-            Expr expr = transformExpr(node.body);
-            stmts.add(new Assign(node.getLoc(), expr.addressNode(), new Bin(BinaryOpNode.BinaryOp.ADD, expr, new Int(1))));
-            returnExpr = expr;
-        } else if (node.getOp() == UnaryOpNode.UnaryOp.DEC) {
-            Expr expr = transformExpr(node.body);
-            stmts.add(new Assign(node.getLoc(), expr.addressNode(), new Bin(BinaryOpNode.BinaryOp.SUB, expr, new Int(1))));
-            returnExpr = expr;
+        } else if (node.getOp().equals(UnaryOpNode.UnaryOp.INC)) {
+            returnExpr = transformOpAssign(node.getLoc(), node.type, BinaryOpNode.BinaryOp.ADD, transformExpr(node.body), new Int(1));
+        } else if (node.getOp().equals(UnaryOpNode.UnaryOp.DEC)) {
+            returnExpr = transformOpAssign(node.getLoc(), node.type, BinaryOpNode.BinaryOp.SUB, transformExpr(node.body), new Int(1));
         }else
             returnExpr = new Uni(node.getOp(), transformExpr(node.body));
-
     }
+
+    @Override
+    public void visit(MemberNode node) {
+        Node entity = node.getEntity();
+        if (entity instanceof FuncDefNode){//member function
+            returnExpr =  ref(entity);
+        }else if (entity instanceof VarDecNode){//member
+            TypeNode type = node.expr.type;
+            Expr expr = transformExpr(node.expr).addressNode(); //&expr
+            if (type instanceof ClassType){
+                String className = ((ClassType) type).name;
+                ClassDefNode classEntity = typeTable.getClassDefNode(className);
+                int offset = classEntity.getOffset((VarDecNode) entity);
+                Expr addr = new Bin(BinaryOpNode.BinaryOp.ADD, expr, new Int(SIZE * offset));
+                returnExpr = node.isLoadable() ? new Mem(addr) : addr;
+            }
+        }else if (node.expr.type instanceof ArrayType) {
+            if (node.member.name.equals("size")){
+                returnExpr = transformExpr(node.expr);
+            }
+        }else{
+            throw new Error("membernode");
+        }
+    }//function of Array and String is to be done
 
     @Override
     public void visit(SuffixOpNode node) {
         Expr expr = transformExpr(node.expr);
+        BinaryOpNode.BinaryOp op = node.getOp().toString().equals("++") ? BinaryOpNode.BinaryOp.ADD : BinaryOpNode.BinaryOp.SUB;
         if (isStatement()){
-            stmts.add(new Assign(node.getLoc(), expr.addressNode(), new Bin(BinaryOpNode.BinaryOp.ADD, expr, new Int(1))));
+            transformOpAssign(node.getLoc(), node.type, op, expr, new Int(1));
         }
-        else {
+        else if (expr.isVar()){
             VarDecNode tmp = tmpVar(node.expr.getType());
-            stmts.add(new Assign(node.getLoc(), new Addr(tmp), expr));
-            BinaryOpNode.BinaryOp op = node.getOp().toString().equals("++") ? BinaryOpNode.BinaryOp.ADD : BinaryOpNode.BinaryOp.SUB;
-            stmts.add(new Assign(node.getLoc(), expr.addressNode(), new Bin(op, expr, new Int(1))));
-            returnExpr = new Var(tmp);
+            assign(node.getLoc(), ref(tmp), expr);
+            assign(node.getLoc(), expr, new Bin(op, ref(tmp), new Int(1)));
+            returnExpr = ref(tmp);
         }
+        else {//arefnode
+            VarDecNode a = tmpVar(node.expr.type);
+            VarDecNode v = tmpVar(node.expr.type);
+            assign(node.getLoc(), ref(a), expr.addressNode());
+            assign(node.getLoc(), ref(v), mem(a));
+            assign(node.getLoc(), mem(a), new Bin(op, mem(a), new Int(1)));
+            returnExpr = ref(v);        }
     }
-
 
     @Override
     public void visit(NewNode node) {
@@ -296,7 +317,8 @@ public class IRGenerator implements ASTVisitor {
 
     @Override
     public void visit(IDNode node) {
-        returnExpr = new Var(node.getEntity());
+        Var var = ref(node.entity);
+        returnExpr = node.isLoadable() ? var : var.addressNode();
     }
 
     static final int SIZE = 8;
@@ -310,49 +332,24 @@ public class IRGenerator implements ASTVisitor {
     }
 
     @Override
-    public void visit(MemberNode node) {
-        Expr expr = transformExpr(node.expr);
-
-
-        if (node.member.name.equals("size")){
-                returnExpr = expr;
-        }
-        else {
-            if (node.member.entity != null && node.member.entity instanceof FuncDefNode){//function
-                returnExpr =  new Var(node.member.entity);
-            }else{
-                TypeNode type = node.expr.getType();
-                if (type instanceof ClassType){
-                    String className = ((ClassType) type).name;
-                    ClassDefNode classEntity = typeTable.getClassDefNode(className);
-                    int offset = classEntity.getOffset(node.member);
-                    Expr addr = new Bin(BinaryOpNode.BinaryOp.ADD, expr.addressNode(), new Int(SIZE * offset));
-                    returnExpr = new Mem(addr);
-                }
-
-            }
-        }
+    public void visit(ThisNode node) {
+        returnExpr = new Var(node);
+        //to be done
     }
-
-    @Override
-    public void visit(ThisNode node) {}
 
     @Override
     public void visit(FuncallNode node) {
         List<Expr> args = new ArrayList<>();
         ListUtils.reverse(node.parameters).stream().forEachOrdered(x -> args.add(0, transformExpr(x)));
-
         Expr call = new Call(transformExpr(node.name), args);
         if (isStatement()) {
             stmts.add(new ExprStmt(node.getLoc(), call));
-        }
-        else {
+        } else {
             VarDecNode tmp = tmpVar(node.getType());
             returnExpr = new Var(tmp);
             stmts.add(new Assign(node.getLoc(), returnExpr.addressNode(), call));
         }
     }
-
 
     @Override
     public void visit(IntLiteralNode node) {
@@ -364,7 +361,6 @@ public class IRGenerator implements ASTVisitor {
         if (node.value == true){
             returnExpr =  new Int(1);
         }else returnExpr = new Int(0);
-
     }
 
     @Override
@@ -373,23 +369,14 @@ public class IRGenerator implements ASTVisitor {
     }
 
     @Override
-    public void visit(NullLiteralNode node) {
-
-    }
+    public void visit(NullLiteralNode node) {returnExpr = null;}
 
     @Override
-    public void visit(EmptyNode node) {
-
-    }
-
+    public void visit(EmptyNode node) {}
 
     private VarDecNode tmpVar(TypeNode t) {
         return scopeStack.peek().allocateTmp(t);
     }
-
-
-
-
 
     private int exprNestLevel = 0;
 
@@ -401,11 +388,44 @@ public class IRGenerator implements ASTVisitor {
         exprNestLevel--;
         return returnExpr;
     }
-    // #@@}
-
-    // #@@range/isStatement{
     private boolean isStatement() {
         return (exprNestLevel == 0);
+    }
+
+    private void assign(Location loc, Expr lhs, Expr rhs) {
+        if (lhs instanceof Addr && rhs instanceof Malloc){
+            stmts.add(new Assign(loc, lhs, rhs));
+        }
+        else if (lhs instanceof Addr && rhs instanceof Addr){
+            stmts.add(new Assign(loc, lhs, rhs));
+        }else if (lhs instanceof Addr && rhs == null){
+            stmts.add(new Assign(loc, lhs, rhs));
+        }
+        else{
+        stmts.add(new Assign(loc, lhs.addressNode(), rhs));}
+    }
+
+    private Mem mem(Node ent) {
+        return new Mem(ref(ent));
+    }
+
+    private Var ref(Node ent) {
+        return new Var(ent);
+    }
+
+    private Expr transformOpAssign(Location loc, TypeNode type, BinaryOpNode.BinaryOp op,  Expr lhs, Expr rhs) {
+        if (lhs.isVar()) {
+            // cont(lhs += rhs) -> lhs = lhs + rhs; cont(lhs)
+            assign(loc, lhs, new Bin(op, lhs, rhs));
+            return isStatement() ? null : lhs;
+        }
+        else {
+            // cont(lhs += rhs) -> a = &lhs; *a = *a + rhs; cont(*a)
+            VarDecNode a = tmpVar(type);
+            assign(loc, ref(a), lhs.addressNode());
+            assign(loc, mem(a), new Bin(op, mem(a), rhs));
+            return isStatement() ? null : mem(a);
+        }
     }
 
 }

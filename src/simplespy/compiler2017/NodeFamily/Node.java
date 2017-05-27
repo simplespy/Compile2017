@@ -30,6 +30,10 @@ public abstract class Node {
     public void setScope(Scope scope) {
         this.scope = scope;
     }
+    public boolean isLoadable() {
+        if (this.type instanceof ArrayType) return false;
+        return true;
+    }
 
 
     public TypeNode getType() {

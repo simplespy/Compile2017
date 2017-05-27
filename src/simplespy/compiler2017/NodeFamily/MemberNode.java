@@ -28,4 +28,8 @@ public class MemberNode extends ExprNode {
     public TypeNode getType() {
         return this.member.getType();
     }
+
+    public Node getEntity(){
+        return member.getEntity();
+    }
 }

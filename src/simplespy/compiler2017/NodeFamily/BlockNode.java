@@ -11,6 +11,7 @@ import java.util.List;
 public class BlockNode extends StmtNode {
     public final List<StmtNode> stmts;
     public final Location loc;
+    public List<VarDecNode> vars = new ArrayList<>();
 
     public Location getLoc() {
         return loc;
@@ -39,4 +40,6 @@ public class BlockNode extends StmtNode {
     public void accept(ASTVisitor visitor) {
         visitor.visit(this);
     }
+
+    public void addVar(VarDecNode var){this.vars.add(var);}
 }
