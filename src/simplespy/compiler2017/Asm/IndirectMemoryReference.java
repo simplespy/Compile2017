@@ -16,7 +16,7 @@ public class IndirectMemoryReference extends MemoryReference {
     @Override
     public String toString() {
         if (offset == 0) return '['+base.toString()+']';
-        return '['+base.toString()+Integer.toString(offset)+']';
+        return '['+base.toString()+(offset>0?'+':'-')+Integer.toString(Math.abs(offset))+']';
     }
     public void collectStatistics(Statistics stats) {
         base.collectStatistics(stats);

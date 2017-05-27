@@ -154,9 +154,15 @@ public class CodeGenerator implements IRVisitor {
 
     private void locateParameters(List<VarDecNode> paras){
         int numWords = PARAM_START_WORD;
+        int i = 0;
         for(VarDecNode var : paras){
-            var.setMemoryReference(new IndirectMemoryReference(numWords * STACK_WORD_SIZE, bp()));
-            ++numWords;
+            /*if (i < PARAS_REG.length){
+                var.setMemoryReference(new IndirectMemoryReference(0, PARAS_REG[i]));
+                ++i;
+            }else {*/
+                var.setMemoryReference(new IndirectMemoryReference(numWords * STACK_WORD_SIZE, bp()));
+                ++numWords;
+            //}
         }
     }
 
@@ -304,12 +310,12 @@ public class CodeGenerator implements IRVisitor {
 
     static int varnum = 0;
     static String varBase = "var";
+    private Register[] PARAS_REG = {di(), si(), dx(), cx(), r8(), r9()};
 
     @Override
     public void visit(Call node) {
         String funcName = node.getEntityForce().getName();
         Node entity = node.getEntityForce();
-        Register[] paras = {di(), si(), dx(), cx(), r8(), r9()};
 
         if (funcName.equals("getInt") && entity.equals(gl.get(funcName))){
             Symbol var = new Symbol(varBase + varnum++);
@@ -319,7 +325,6 @@ public class CodeGenerator implements IRVisitor {
             acfunc.call(new Symbol(transFuncName(funcName)));
             acfunc.mov(var,ax());
         }
-
         else if (funcName.equals("getString") && entity.equals(gl.get(funcName))){
             Symbol var = new Symbol(varBase + varnum++);
             ac.addBss(var.name+':' + "resd 20" );
@@ -327,9 +332,7 @@ public class CodeGenerator implements IRVisitor {
             acfunc.mov(new Symbol("fmts"), di());
             acfunc.call(new Symbol(transFuncName(funcName)));
             acfunc.mov(var,ax());
-
         }
-
         else if (funcName.equals("toString") && entity.equals(gl.get(funcName))){
             Symbol var = new Symbol(varBase + varnum++);
             ac.addBss(var.name+':' + "resd 20" );
@@ -346,13 +349,14 @@ public class CodeGenerator implements IRVisitor {
 
 
         }
-
         else{
             int i = 0;
             for (Expr arg: ListUtils.reverse(node.getArgs())){
-                compileExpr(arg, paras[node.getArgs().size()-1-i]);
-                if(i >= paras.length) throw new Error("more than 6 paras");
-                ++i;
+                compileExpr(arg, ax());
+                acfunc.push(ax());
+               /* compileExpr(arg, PARAS_REG[node.getArgs().size()-1-i]);
+                if(i >= PARAS_REG.length) throw new Error("more than 6 paras");
+                ++i;*/
             }
             acfunc.call(new Symbol(transFuncName(funcName)));
         }
@@ -512,6 +516,9 @@ public class CodeGenerator implements IRVisitor {
             }else if (vari instanceof VarDecNode){
                 var = (VarDecNode) vari;
             }else break;
+            if (var.getMemoryReference() != null){//parameters
+                continue;
+            }
             len = AsmUtils.align(len + 8, 16);
             var.setMemoryReference(new IndirectMemoryReference(-len, bp()));
 
