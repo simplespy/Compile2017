@@ -10,10 +10,11 @@ import simplespy.compiler2017.NodeFamily.StringLiteralNode;
  */
 public class Str extends Expr {
     String value;
-    StringLiteralNode entry;
+    public StringLiteralNode entry;
 
-    public Str(String value){
+    public Str(String value, StringLiteralNode entry){
         this.value = value;
+        this.entry = entry;
     }
 
     public String getValue() {

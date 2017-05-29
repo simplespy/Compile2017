@@ -424,7 +424,8 @@ public class IRGenerator implements ASTVisitor {
 
     @Override
     public void visit(StringLiteralNode node) {
-        returnExpr = new Str(node.value);
+        returnExpr = new Str(node.value, node);
+
     }
 
     @Override
@@ -519,7 +520,7 @@ public class IRGenerator implements ASTVisitor {
             String left = ((Str) leftexpr).getValue();
             String right =  ((Str) rightexpr).getValue();
 
-            if (op.equals(BinaryOpNode.BinaryOp.ADD)) return new Str(left.concat(right));
+            if (op.equals(BinaryOpNode.BinaryOp.ADD)) return new Str(left.concat(right), null);
         }else{
             throw  new Error("constant calculate");
         }

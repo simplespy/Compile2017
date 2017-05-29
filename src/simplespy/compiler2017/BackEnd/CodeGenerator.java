@@ -284,9 +284,11 @@ public class CodeGenerator implements IRVisitor {
                 break;
             case DIV:
             case MOD:
-                acfunc.mov(new ImmediateValue(0), dx());
+                acfunc.mov(new ImmediateValue(0),dx());
+                acfunc.mov(left, ax());
+                acfunc.mov(right, cx());
                 acfunc.div(cx());
-                if (op == BinaryOpNode.BinaryOp.MOD) {
+                if (op.equals(BinaryOpNode.BinaryOp.MOD)) {
                     acfunc.mov(dx(), left);
                 }
                 break;
@@ -533,6 +535,7 @@ public class CodeGenerator implements IRVisitor {
                 acfunc.test(ax(),ax());
                 acfunc.sete(al());
                 acfunc.movzx(al(),ax());
+                break;
             case BITWISE_NOT:
                 acfunc.not(ax());
                 break;

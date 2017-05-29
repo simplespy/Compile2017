@@ -143,6 +143,7 @@ public class AssemblyCode {
     public void setg(Operand src){assemblies.add(new Instruction("setg",src));}
     public void setge(Operand src){assemblies.add(new Instruction("setge",src));}
 
+    public void cltd(){assemblies.add(new Instruction("cltd"));}
 
     public void movzx(Operand src, Operand dest){
         assemblies.add(new Instruction("movzx", src, dest));
