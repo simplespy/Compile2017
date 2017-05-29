@@ -343,11 +343,11 @@ public class IRGenerator implements ASTVisitor {
         Expr[] base = {new Int(SIZE * size)};
         node.item.stream().filter(x->x != null).forEachOrdered(x-> {
             Expr exprx = transformExpr(x);
-         //   space.arraySize = exprx;
+            space.arraySize = exprx;
             Expr addx = exprx;
-         /*   if(exprx.isConstant()){
+            if(exprx.isConstant()){
                 addx = calculate(BinaryOpNode.BinaryOp.ADD, exprx, new Int(1));
-            }else addx = new Bin(BinaryOpNode.BinaryOp.ADD, exprx, new Int(1));*/
+            }else addx = new Bin(BinaryOpNode.BinaryOp.ADD, exprx, new Int(1));
             Expr total = new Bin(BinaryOpNode.BinaryOp.MUL, base[0], addx);
             base[0] = total;
         });
@@ -368,12 +368,11 @@ public class IRGenerator implements ASTVisitor {
         Expr expr = transformExpr(node.getExpr());
         Expr index = transformExpr(node.getIndex());
         Expr offset;
-        Expr newindex = index;
         if (index.isConstant()){
-           // Expr newindex = calculate(BinaryOpNode.BinaryOp.ADD, index, new Int(1));
+            Expr newindex = calculate(BinaryOpNode.BinaryOp.ADD, index, new Int(1));
             offset = calculate(BinaryOpNode.BinaryOp.MUL, new Int(SIZE), newindex);
         }else {
-           // Expr newindex = new Bin(BinaryOpNode.BinaryOp.ADD, index, new Int(1));
+            Expr newindex = new Bin(BinaryOpNode.BinaryOp.ADD, index, new Int(1));
             offset = new Bin(BinaryOpNode.BinaryOp.MUL, new Int(SIZE), newindex);
         }
         Expr addr;

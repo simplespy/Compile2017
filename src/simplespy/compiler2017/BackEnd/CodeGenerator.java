@@ -239,6 +239,9 @@ public class CodeGenerator implements IRVisitor {
         else if (node instanceof Str){
             acfunc.mov(stringPool.get(((Str)node).getValue()).getMemoryReference(), reg);
         }
+        else{
+            throw new Error("compile expr");
+        }
     }
 
     @Override
@@ -390,12 +393,12 @@ public class CodeGenerator implements IRVisitor {
                 acfunc.mov(new IndirectMemoryReference(0,cx()), ax());
 
             }
-        }/*else if (funcName.equals("size") && entity.equals(gl.array.get(funcName))){
+        } else if (funcName.equals("size") && entity.equals(gl.array.get(funcName))){
             if (node.argThis != null){
-                compileExpr(node.argThis, ax());
-
+                visit(node.argThis);
+                acfunc.mov(new IndirectMemoryReference(0,ax()), ax());
             }
-        }*/
+        }
         else{
             int i = 0;
             for (Expr arg: ListUtils.reverse(node.getArgs())){
@@ -562,10 +565,7 @@ public class CodeGenerator implements IRVisitor {
         acfunc.mov(ax(),di());
         acfunc.call(malloc);
         if (node.arraySize != null) {
-            acfunc.virtualPush(ax());
-            visit(node.arraySize);
-            acfunc.mov(ax(),cx());
-            acfunc.pop(ax());
+            compileExpr(node.arraySize, cx());
             acfunc.mov(cx(),new IndirectMemoryReference(0,ax()));
         }
       //  acfunc.add(new ImmediateValue(STACK_WORD_SIZE), sp());
