@@ -379,7 +379,8 @@ public class CodeGenerator implements IRVisitor {
                 }
             }else throw new Error("Function toString must have int parameter");
         }else if (funcName.equals("length") && entity.equals(gl.string.get(funcName))){
-            compileExpr(node.argThis, di());
+            visit(node.argThis);
+            acfunc.mov(ax(),di());
             acfunc.call(new Symbol(transFuncName(funcName)));
         }else if (funcName.equals("println") && entity.equals(gl.get(funcName))){
 
@@ -387,8 +388,10 @@ public class CodeGenerator implements IRVisitor {
             acfunc.call(new Symbol(transFuncName(funcName)));
         }else if (funcName.equals("ord") && entity.equals(gl.string.get(funcName))){
             if (node.argThis != null){
-                compileExpr(node.argThis, cx());//first char
-                compileExpr(node.getArgs().get(0),di());//arg
+                visit(node.argThis);
+                acfunc.mov(ax(),cx());//first char
+                visit(node.getArgs().get(0));
+                acfunc.mov(ax(),di());//arg
                 acfunc.add(di(),cx());
                 acfunc.mov(new IndirectMemoryReference(0,cx()), ax());
 
@@ -402,7 +405,7 @@ public class CodeGenerator implements IRVisitor {
         else{
             int i = 0;
             for (Expr arg: ListUtils.reverse(node.getArgs())){
-                compileExpr(arg, ax());
+                visit(arg);
                 acfunc.push(ax());
                /* compileExpr(arg, PARAS_REG[node.getArgs().size()-1-i]);
                 if(i >= PARAS_REG.length) throw new Error("more than 6 paras");
@@ -565,8 +568,11 @@ public class CodeGenerator implements IRVisitor {
         acfunc.mov(ax(),di());
         acfunc.call(malloc);
         if (node.arraySize != null) {
-            compileExpr(node.arraySize, cx());
-            acfunc.mov(cx(),new IndirectMemoryReference(0,ax()));
+            acfunc.virtualPush(ax());
+            visit(node.arraySize);
+            acfunc.virtualPop(cx());
+            acfunc.mov(ax(), new IndirectMemoryReference(0,cx()));
+            acfunc.mov(cx(), ax());
         }
       //  acfunc.add(new ImmediateValue(STACK_WORD_SIZE), sp());
        /* acfunc.mov(new ImmediateValue(12), ax());
