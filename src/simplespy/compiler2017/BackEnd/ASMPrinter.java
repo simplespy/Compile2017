@@ -23,6 +23,8 @@ public class ASMPrinter implements ASMVisitor {
         asm.getExterns().stream().forEachOrdered(this::visit);
         asm.getBss().stream().forEachOrdered(x->out.println(x));
         asm.getAssemblies().stream().forEachOrdered(this::visit);
+        asm.printIntern().stream().forEachOrdered(x->out.println(x));
+
     }
 
     @Override
@@ -50,5 +52,10 @@ public class ASMPrinter implements ASMVisitor {
     @Override
     public void visit(Label asm) {
         out.println(asm.toString()+":");
+    }
+
+    @Override
+    public void visit(Align asm) {
+        out.println('\t'+asm.toString());
     }
 }

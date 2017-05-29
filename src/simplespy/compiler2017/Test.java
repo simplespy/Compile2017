@@ -20,7 +20,7 @@ import java.io.*;
 public class Test {
     public static void main(String[] args) throws Exception {
         boolean pass = true;
-        String sdir = "Test/All/";
+        String sdir = "Test/3-codegen-pretest/exitcode/pass/";
         File dir = new File(sdir);
         String[] children = dir.list();
         if (children == null) {

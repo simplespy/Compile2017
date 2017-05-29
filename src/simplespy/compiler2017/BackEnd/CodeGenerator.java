@@ -1,5 +1,6 @@
 package simplespy.compiler2017.BackEnd;
 
+import org.stringtemplate.v4.ST;
 import simplespy.compiler2017.Asm.*;
 import simplespy.compiler2017.FrontEnd.GlobalScope;
 import simplespy.compiler2017.FrontEnd.IRVisitor;
@@ -24,6 +25,8 @@ public class CodeGenerator implements IRVisitor {
     int numofGlobalString;
     GlobalScope gl;
     IRRoot ir;
+    private int rsp = 0;
+    private boolean flag = false;
 
     public AssemblyCode getAC() {
         return ac;
@@ -77,7 +80,7 @@ public class CodeGenerator implements IRVisitor {
         if (node.ir instanceof Int){
             ac.define(new ImmediateValue(((Int) node.ir).getValue()));
         }else if (node.ir instanceof Str){
-            ac.define(new Symbol(((Str) node.ir).getValue()));
+            ac.define(new Symbol('"'+((Str) node.ir).getValue()+'"'));
             stringPool.get(((Str) node.ir).getValue()).isGlobal = true;
             numofGlobalString++;
         }else if (node.ir instanceof Malloc) {
@@ -169,6 +172,7 @@ public class CodeGenerator implements IRVisitor {
     private AssemblyCode compileStmts(FuncDefNode func){
         acfunc = new AssemblyCode();
         epilogue = new Label();
+        rsp = 0;
         func.ir.stream().forEachOrdered(this::visit);
         acfunc.label(epilogue);
         return acfunc;
@@ -208,7 +212,8 @@ public class CodeGenerator implements IRVisitor {
     private void generateFunctionBody(AssemblyCode file, AssemblyCode body, StackFrame frame){
         file.virtualStack.reset();
         prologue(file, frame.saveRegs, frame.frameSize());
-        file.addAll(body.getAssemblies());
+        boolean printornot = (frame.frameSize() % 16 == 0);
+        file.addAll(body.getAssemblies(), printornot);
         file.addExtern(body.getExterns());
         epilogue(file, frame.saveRegs);
         file.virtualStack.fixOffset(0);
@@ -327,7 +332,9 @@ public class CodeGenerator implements IRVisitor {
             acfunc.mov(dx(),new DirectMemoryReference(buffer));
 
             acfunc.mov(ax(), di());
-            acfunc.call(new Symbol("strlen"));
+            
+            call(new Symbol("strlen"));
+           
             acfunc.lea(new DirectMemoryReference(buffer), cx());
             acfunc.add(ax(), cx());
 
@@ -348,44 +355,65 @@ public class CodeGenerator implements IRVisitor {
     public void visit(Call node) {
         String funcName = node.getEntityForce().getName();
         Node entity = node.getEntityForce();
-
         if (funcName.equals("getInt") && entity.equals(gl.get(funcName))){
             Symbol var = new Symbol(varBase + varnum++);
             ac.addBss(var.name+':' + "resd 1" );
             acfunc.mov(var, si());
             acfunc.mov(new Symbol("fmtd"), di());
-            acfunc.call(new Symbol(transFuncName(funcName)));
+           
+              call(new Symbol(transFuncName(funcName)));
+           
             acfunc.mov(var,ax());
+
         }
         else if (funcName.equals("getString") && entity.equals(gl.get(funcName))){
             Symbol var = new Symbol(varBase + varnum++);
             ac.addBss(var.name+':' + "resd 20" );
             acfunc.mov(var, si());
             acfunc.mov(new Symbol("fmts"), di());
-            acfunc.call(new Symbol(transFuncName(funcName)));
+             
+              call(new Symbol(transFuncName(funcName)));
+              
             acfunc.mov(var,ax());
         }
         else if (funcName.equals("toString") && entity.equals(gl.get(funcName))){
             Symbol var = new Symbol(varBase + varnum++);
-            ac.addBss(var.name+':' + "resd 20" );
-            if (node.getArgs().size() == 1){
-                Expr arg = node.getArgs().get(0);
-                if (arg instanceof Int){
-                    acfunc.mov(new ImmediateValue(((Int) arg).getValue()),dx());
-                    acfunc.mov(new Symbol("fmtd"), si());
-                    acfunc.mov(var, di());
-                    acfunc.call(new Symbol(transFuncName(funcName)));
-                    acfunc.mov(var,ax());
-                }
-            }else throw new Error("Function toString must have int parameter");
+            ac.addBss(var.name+':' + "\tresd 20" );
+            visit(node.getArgs().get(0));
+            acfunc.mov(ax(), dx());
+            acfunc.mov(new Symbol("fmtd"), si());
+            acfunc.mov(var, di());
+
+            call(new Symbol(transFuncName(funcName)));
+
+            acfunc.mov(var,ax());
+            /*  acfunc.push(r15());
+            acfunc.mov(new ImmediateValue(20), di());
+              call(new Symbol("malloc"));
+            acfunc.mov(ax(),r15());
+            acfunc.add(new ImmediateValue(8), r15());
+            acfunc.mov(r15(), di());
+            acfunc.mov(new Symbol("fmtd"), si());
+            acfunc.pop(dx());
+              call(new Symbol(transFuncName(funcName)));
+            acfunc.mov(r15(), di());
+              call(new Symbol("strlen"));
+            acfunc.mov(ax(),new Symbol("qword [r15 - 8]"));
+            acfunc.mov(r15(),ax());
+            acfunc.pop(r15());
+            acfunc.ret();*/
         }else if (funcName.equals("length") && entity.equals(gl.string.get(funcName))){
             visit(node.argThis);
             acfunc.mov(ax(),di());
-            acfunc.call(new Symbol(transFuncName(funcName)));
-        }else if (funcName.equals("println") && entity.equals(gl.get(funcName))){
 
+              call(new Symbol(transFuncName(funcName)));
+
+        }else if (funcName.equals("println") && entity.equals(gl.get(funcName))){
+            visit(node.getArgs().get(0));
             acfunc.mov(ax(), di());
-            acfunc.call(new Symbol(transFuncName(funcName)));
+
+              call(new Symbol(transFuncName(funcName)));
+
         }else if (funcName.equals("ord") && entity.equals(gl.string.get(funcName))){
             if (node.argThis != null){
                 visit(node.argThis);
@@ -394,24 +422,47 @@ public class CodeGenerator implements IRVisitor {
                 acfunc.mov(ax(),di());//arg
                 acfunc.add(di(),cx());
                 acfunc.mov(new IndirectMemoryReference(0,cx()), ax());
-
             }
+              call(new Symbol(transFuncName(funcName)));
         } else if (funcName.equals("size") && entity.equals(gl.array.get(funcName))){
             if (node.argThis != null){
                 visit(node.argThis);
                 acfunc.mov(new IndirectMemoryReference(0,ax()), ax());
             }
+              call(new Symbol(transFuncName(funcName)));
+        } else if (funcName.equals("parseInt") && entity.equals(gl.string.get(funcName))) {
+            visit(node.argThis);
+            acfunc.mov(ax(), di());
+            
+              call(new Symbol("@string."+funcName));
+            
+            ac.addIntern(funcName);
         }
         else{
             int i = 0;
+            rsp += node.getArgs().size() * STACK_WORD_SIZE;
+            if (rsp % 16 != 0){
+                acfunc.align(0,true);
+                rsp += 8;
+                flag = true;
+            }else{acfunc.align(0,false);}
             for (Expr arg: ListUtils.reverse(node.getArgs())){
                 visit(arg);
+               // acfunc.sub(new ImmediateValue(8), sp());
                 acfunc.push(ax());
+
                /* compileExpr(arg, PARAS_REG[node.getArgs().size()-1-i]);
                 if(i >= PARAS_REG.length) throw new Error("more than 6 paras");
                 ++i;*/
             }
-            acfunc.call(new Symbol(transFuncName(funcName)));
+              acfunc.call(new Symbol(transFuncName(funcName)));
+            if (flag){
+                acfunc.align(1,true);
+                rsp -= 8;
+                flag = false;
+            }else{acfunc.align(1,false);}
+            acfunc.add(new ImmediateValue(STACK_WORD_SIZE*node.getArgs().size()), sp());
+            rsp -= node.getArgs().size() * STACK_WORD_SIZE;
         }
     }
 
@@ -566,7 +617,9 @@ public class CodeGenerator implements IRVisitor {
         acfunc.addExtern(malloc);
         visit(node.spaceSize);
         acfunc.mov(ax(),di());
-        acfunc.call(malloc);
+
+        call(malloc);
+
         if (node.arraySize != null) {
             acfunc.virtualPush(ax());
             visit(node.arraySize);
@@ -606,7 +659,7 @@ public class CodeGenerator implements IRVisitor {
             if (var.getMemoryReference() != null){//parameters
                 continue;
             }
-            len = AsmUtils.align(len + 8, 16);
+            len = AsmUtils.align(len + STACK_WORD_SIZE, STACK_WORD_SIZE);
             var.setMemoryReference(new IndirectMemoryReference(-len, bp()));
 
         }
@@ -638,6 +691,7 @@ public class CodeGenerator implements IRVisitor {
     }
     private Register r8(){return new Register(Register.RegisterClass.R8);}
     private Register r9(){return new Register(Register.RegisterClass.R9);}
+    private Register r15(){return new Register(Register.RegisterClass.R15);}
 
     static final Register.RegisterClass[] CALLEE_SAVE_REGISTERS = {
             Register.RegisterClass.BX, Register.RegisterClass.BP,
@@ -657,4 +711,19 @@ public class CodeGenerator implements IRVisitor {
         public int frameSize(){return saveRegsSize() + lvarSize + tempSize;}
 
     }
+    
+    void call(Symbol func){
+        if (rsp % 16 != 0){
+            acfunc.align(0,true);
+            rsp += 8;
+            flag = true;
+        }else{acfunc.align(0,false);}
+        acfunc.call(func);
+        if (flag){
+            acfunc.align(1,true);
+            rsp -= 8;
+            flag = false;
+        }else{acfunc.align(1,false);}
+    }
+
 }

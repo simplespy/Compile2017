@@ -13,5 +13,6 @@ public interface ASMVisitor {
     void visit(Directive asm);
     void visit(Instruction asm);
     void visit(Label asm);
+    void visit(Align asm);
 
 }
