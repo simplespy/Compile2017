@@ -23,6 +23,7 @@ public class CodeGenerator implements IRVisitor {
     private Map<String, StringLiteralNode> stringPool;
     int numofGlobalString;
     GlobalScope gl;
+    IRRoot ir;
 
     public AssemblyCode getAC() {
         return ac;
@@ -32,6 +33,7 @@ public class CodeGenerator implements IRVisitor {
     public void visit(IRRoot node) {
         stringPool = node.typeTable.getStringMap();
         gl = node.scope;
+        ir = node;
         locateSymbols(node);
         ac = new AssemblyCode();
         if (node.vars != null){
@@ -58,10 +60,6 @@ public class CodeGenerator implements IRVisitor {
         file.define(new ImmediateValue(0),new Symbol("\"%d\""));
         file.label("fmts");
         file.define(new ImmediateValue(0),new Symbol("\"%s\""));
-        file.label("initial_break");
-        file.define(new ImmediateValue(0));
-        file.label("current_break");
-        file.define(new ImmediateValue(0));
         gvars.stream().filter(x->x.init != null && !(x.init instanceof NullLiteralNode)).forEachOrdered(x ->{
             Symbol sym = file.label(x.getName());
             x.setAddress(sym );
@@ -83,7 +81,7 @@ public class CodeGenerator implements IRVisitor {
             stringPool.get(((Str) node.ir).getValue()).isGlobal = true;
             numofGlobalString++;
         }else if (node.ir instanceof Malloc) {
-            visit(node.ir);
+            ac.define(new ImmediateValue(0));
         }else if (node.ir instanceof Bin){
             ac.define(new ImmediateValue(calculate((Bin) node.ir)));
 
@@ -121,7 +119,7 @@ public class CodeGenerator implements IRVisitor {
         stringPool.keySet().stream().filter(name -> stringPool.get(name).isGlobal == false).forEachOrdered(name -> {
             Label label = new Label();
             file.label(label);
-            Symbol symbol = new Symbol(name);
+            Symbol symbol = new Symbol('"'+name+'"');
             stringPool.get(name).setAddress(label.getSymbol());
             stringPool.get(name).setMemoryReference(new DirectMemoryReference(label.getSymbol()));
             file.define(new ImmediateValue(0),symbol);
@@ -233,7 +231,7 @@ public class CodeGenerator implements IRVisitor {
 
     private void compileExpr(Expr node, Register reg){
         if(node instanceof Var){
-            acfunc.mov(((Var)node).memref(), reg);
+            acfunc.mov(node.getMemoryReference(), reg);
         }
         else if (node instanceof  Int){
             acfunc.mov(new ImmediateValue(((Int)node).getValue()), reg);
@@ -250,11 +248,17 @@ public class CodeGenerator implements IRVisitor {
 
     @Override
     public void visit(Bin node) {
-        visit(node.getRight());
-        acfunc.virtualPush(ax());
-        visit(node.getLeft());
-        acfunc.virtualPop(cx());
-        compileBinaryOp(node.getOp(), ax(), cx());
+        Node entity = node.getEntityForce();
+        if (entity != null && entity.getType() instanceof BaseType && entity.getType().toString().equals("STRING")){
+            compileStringOp(node);
+        }
+        else{
+            visit(node.getRight());
+            acfunc.virtualPush(ax());
+            visit(node.getLeft());
+            acfunc.virtualPop(cx());
+            compileBinaryOp(node.getOp(), ax(), cx());
+        }
     }
 
     private void compileBinaryOp(BinaryOpNode.BinaryOp op, Register left, Operand right){
@@ -308,6 +312,31 @@ public class CodeGenerator implements IRVisitor {
         }
     }
 
+    private void compileStringOp(Bin node){
+        //ax cx
+        if (node.getOp().equals(BinaryOpNode.BinaryOp.ADD)){
+            ac.addExtern(new Symbol("strlen"));
+            Symbol buffer = new Symbol(varBase + varnum++);
+            ac.addBss(buffer.name+':' + "\tresd 20" );
+
+            visit(node.getLeft());
+            acfunc.mov(new IndirectMemoryReference(0,ax()), dx());
+            acfunc.mov(dx(),new DirectMemoryReference(buffer));
+
+            acfunc.mov(ax(), di());
+            acfunc.call(new Symbol("strlen"));
+            acfunc.lea(new DirectMemoryReference(buffer), cx());
+            acfunc.add(ax(), cx());
+
+            visit(node.getRight());
+            acfunc.mov(new IndirectMemoryReference(0,ax()), dx());
+            acfunc.mov(dx(), new IndirectMemoryReference(0,cx()));
+            acfunc.mov(buffer, ax());
+        }
+
+
+    }
+
     static int varnum = 0;
     static String varBase = "var";
     private Register[] PARAS_REG = {di(), si(), dx(), cx(), r8(), r9()};
@@ -346,9 +375,27 @@ public class CodeGenerator implements IRVisitor {
                     acfunc.mov(var,ax());
                 }
             }else throw new Error("Function toString must have int parameter");
+        }else if (funcName.equals("length") && entity.equals(gl.string.get(funcName))){
+            compileExpr(node.argThis, di());
+            acfunc.call(new Symbol(transFuncName(funcName)));
+        }else if (funcName.equals("println") && entity.equals(gl.get(funcName))){
 
+            acfunc.mov(ax(), di());
+            acfunc.call(new Symbol(transFuncName(funcName)));
+        }else if (funcName.equals("ord") && entity.equals(gl.string.get(funcName))){
+            if (node.argThis != null){
+                compileExpr(node.argThis, cx());//first char
+                compileExpr(node.getArgs().get(0),di());//arg
+                acfunc.add(di(),cx());
+                acfunc.mov(new IndirectMemoryReference(0,cx()), ax());
 
-        }
+            }
+        }/*else if (funcName.equals("size") && entity.equals(gl.array.get(funcName))){
+            if (node.argThis != null){
+                compileExpr(node.argThis, ax());
+
+            }
+        }*/
         else{
             int i = 0;
             for (Expr arg: ListUtils.reverse(node.getArgs())){
@@ -368,6 +415,7 @@ public class CodeGenerator implements IRVisitor {
         else if (name.equals("print")) externName = "printf";
         else if (name.equals("getString") || name.equals("getInt")) externName = "scanf";
         else if (name.equals("toString")) externName = "sprintf";
+        else if (name.equals("length")) externName = "strlen";
         else return name;
         acfunc.addExtern(new Symbol(externName));
         return externName;
@@ -434,7 +482,7 @@ public class CodeGenerator implements IRVisitor {
 
     @Override
     public void visit(Var node) {
-        acfunc.mov(node.memref(), ax());
+        acfunc.mov(node.getMemoryReference(), ax());
     }
 
     @Override
@@ -443,13 +491,15 @@ public class CodeGenerator implements IRVisitor {
     @Override
     public void visit(Assign node) {
         if (node.getRhs() == null) return;
-        if(node.getLhs().isAddr() && ((Addr)node.getLhs()).getMemoryReference() != null){
+
+        if(node.getLhs().isAddr() && (node.getLhs().getMemoryReference() != null)){
             visit(node.getRhs());
-            acfunc.mov(ax(), ((Addr) node.getLhs()).getMemoryReference());
+            acfunc.mov(ax(), (node.getLhs().getMemoryReference()));
         }
         else if (node.getRhs().isConstant()){
             visit(node.getLhs());
             acfunc.mov(ax(),cx());
+            loadConstant(node.getRhs(), ax());
             acfunc.mov(ax(), new IndirectMemoryReference(0,cx()));
         }
         else{
@@ -459,6 +509,18 @@ public class CodeGenerator implements IRVisitor {
             acfunc.mov(ax(),cx());
             acfunc.virtualPop(ax());
             acfunc.mov(ax(), new IndirectMemoryReference(0,cx()));
+        }
+    }
+
+    private void loadConstant(Expr node, Register reg) {
+        if (node.asmValue() != null) {
+            acfunc.mov(node.asmValue(), reg);
+        }
+        else if (node.getMemoryReference() != null) {
+            acfunc.lea(node.getMemoryReference(), reg);
+        }
+        else {
+            throw new Error("must not happen: constant has no asm value");
         }
     }
 
@@ -473,9 +535,14 @@ public class CodeGenerator implements IRVisitor {
 
     @Override
     public void visit(Addr node) {
+        Node entity = node.entity;
         if (node.getAddress() != null){
             acfunc.mov(node.getAddress(), ax());
-        }else {
+        }
+        else if(entity.getType() instanceof ArrayType || entity.getType() instanceof ClassType){
+            acfunc.mov(node.getMemoryReference(),ax());
+        }
+        else{
             acfunc.lea(node.getMemoryReference(),ax());
         }
     }
@@ -489,7 +556,20 @@ public class CodeGenerator implements IRVisitor {
     @Override
     public void visit(Malloc node) {
         if (acfunc == null) acfunc = ac;
-        acfunc.mov(new ImmediateValue(12), ax());
+        Symbol malloc = new Symbol("malloc");
+        acfunc.addExtern(malloc);
+        visit(node.spaceSize);
+        acfunc.mov(ax(),di());
+        acfunc.call(malloc);
+        if (node.arraySize != null) {
+            acfunc.virtualPush(ax());
+            visit(node.arraySize);
+            acfunc.mov(ax(),cx());
+            acfunc.pop(ax());
+            acfunc.mov(cx(),new IndirectMemoryReference(0,ax()));
+        }
+      //  acfunc.add(new ImmediateValue(STACK_WORD_SIZE), sp());
+       /* acfunc.mov(new ImmediateValue(12), ax());
         acfunc.mov(new ImmediateValue(0), di());
         acfunc.syscall();
         DirectMemoryReference initial = new DirectMemoryReference(new Symbol("initial_break"));
@@ -501,7 +581,8 @@ public class CodeGenerator implements IRVisitor {
         acfunc.add(ax(),di());
         acfunc.mov(new ImmediateValue(12), ax());
         acfunc.syscall();
-        acfunc.mov(ax(),current);
+        acfunc.mov(ax(),current);*/
+
     }
 
     private int locateLocalVars(Scope scope){

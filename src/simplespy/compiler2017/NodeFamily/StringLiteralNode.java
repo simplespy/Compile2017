@@ -1,6 +1,7 @@
 package simplespy.compiler2017.NodeFamily;
 
 import simplespy.compiler2017.Asm.DirectMemoryReference;
+import simplespy.compiler2017.Asm.ImmediateValue;
 import simplespy.compiler2017.Asm.MemoryReference;
 import simplespy.compiler2017.Asm.Symbol;
 import simplespy.compiler2017.FrontEnd.ASTVisitor;
@@ -10,9 +11,10 @@ import simplespy.compiler2017.FrontEnd.ASTVisitor;
  */
 public class StringLiteralNode extends ExprNode{
     public final String value;
-    Symbol address;
+    Symbol symbol;
     public boolean isGlobal;
     public MemoryReference memoryReference;
+    public ImmediateValue address;
 
 
     public void setMemoryReference(MemoryReference memoryReference) {
@@ -24,6 +26,12 @@ public class StringLiteralNode extends ExprNode{
     }
 
     public StringLiteralNode(String value) {
+        if (value.charAt(0) == '"'){
+            value = value.substring(1);
+        }
+        if (value.charAt(value.length()-1) == '"'){
+            value = value.substring(0,value.length()-1);
+        }
         this.value = value;
         type = new BaseType(TypeNode.TYPENAME.STRING, null);
         isLv = false;
@@ -31,11 +39,11 @@ public class StringLiteralNode extends ExprNode{
     }
 
     public Symbol getAddress() {
-        return address;
+        return symbol;
     }
 
-    public void setAddress(Symbol address) {
-        this.address = address;
+    public void setAddress(Symbol symbol) {
+        this.symbol = symbol;
     }
 
     @Override
@@ -46,5 +54,8 @@ public class StringLiteralNode extends ExprNode{
     @Override
     public boolean Lv() {
         return false;
+    }
+    public boolean isConstant(){
+        return true;
     }
 }

@@ -9,6 +9,7 @@ import simplespy.compiler2017.NodeFamily.NewNode;
 public class Malloc extends Expr {
     NewNode entity;
     public Expr spaceSize;
+    public Expr arraySize;
 
 
     public void setEntity(NewNode entity) {

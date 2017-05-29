@@ -66,4 +66,7 @@ public class ClassDefNode extends ASTBranch {
     public int getOffset(VarDecNode var){
         return vars.indexOf(var);
     }
+    public int getMemorySize(){
+        return vars.size();
+    }
 }

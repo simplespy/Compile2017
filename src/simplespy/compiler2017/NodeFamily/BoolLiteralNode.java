@@ -29,4 +29,6 @@ public class BoolLiteralNode extends ExprNode {
     public boolean Lv() {
         return false;
     }
+    public boolean isConstant(){return true;}
+
 }

@@ -1,6 +1,7 @@
 package simplespy.compiler2017.NodeFamily.IRNode;
 
 import simplespy.compiler2017.Asm.AsmType;
+import simplespy.compiler2017.Asm.ImmediateValue;
 import simplespy.compiler2017.FrontEnd.IRVisitor;
 
 /**
@@ -27,6 +28,9 @@ public class Int extends Expr{
     @Override
     public void accept(IRVisitor visitor) {
         visitor.visit(this);
+    }
+    public ImmediateValue asmValue() {
+        return new ImmediateValue(value);
     }
 
 

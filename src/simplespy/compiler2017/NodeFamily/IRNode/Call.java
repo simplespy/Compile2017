@@ -11,6 +11,7 @@ import java.util.List;
 public class Call extends Expr {
     public Expr name;
     private List<Expr> args;
+    public Expr argThis = null;
     public Call(Expr name, List<Expr> args){
         this.name = name;
         this.args = args;

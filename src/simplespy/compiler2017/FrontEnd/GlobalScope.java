@@ -14,8 +14,8 @@ import java.util.Map;
  * Created by spy on 17/3/30.
  */
 public class GlobalScope extends Scope {
-    LocalScope string;
-    LocalScope array;
+    public LocalScope string;
+    public LocalScope array;
 
     public GlobalScope(){
         children = new ArrayList<>();

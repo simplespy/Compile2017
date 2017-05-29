@@ -47,5 +47,7 @@ public abstract class Node {
     public Symbol getAddress(){
         return null;
     }
+    public boolean isConstant(){return false;}
+
 
 }

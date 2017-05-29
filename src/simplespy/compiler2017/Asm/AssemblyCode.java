@@ -87,8 +87,8 @@ public class AssemblyCode {
     public void jnz(Label label){
         assemblies.add(new Instruction("jnz", label.getSymbol()));
     }
-    public void je(Label label){
-        assemblies.add(new Instruction("je", label.getSymbol()));
+    public void jz(Label label){
+        assemblies.add(new Instruction("jz", label.getSymbol()));
     }
     public void jle(Label label){
         assemblies.add(new Instruction("jle", label.getSymbol()));
@@ -139,6 +139,10 @@ public class AssemblyCode {
     public void shr(Operand src, Register dest) {
         assemblies.add(new Instruction("shr", src, dest));
     }
+    public void inc(Operand src) {
+        assemblies.add(new Instruction("inc", src));
+    }
+
 
     public void div(Operand src) {
         assemblies.add(new Instruction("div", src));

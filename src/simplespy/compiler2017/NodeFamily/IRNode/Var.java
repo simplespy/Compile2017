@@ -27,7 +27,7 @@ public class Var extends Expr {
         return entity;
     }
 
-    public MemoryReference memref(){
+    public MemoryReference getMemoryReference(){
         return entity.getMemoryReference();
     }
     public boolean isVar(){return true;}

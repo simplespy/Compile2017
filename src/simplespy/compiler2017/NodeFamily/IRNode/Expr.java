@@ -1,5 +1,7 @@
 package simplespy.compiler2017.NodeFamily.IRNode;
 
+import simplespy.compiler2017.Asm.ImmediateValue;
+import simplespy.compiler2017.Asm.MemoryReference;
 import simplespy.compiler2017.FrontEnd.ASTVisitor;
 import simplespy.compiler2017.FrontEnd.IRVisitor;
 import simplespy.compiler2017.NodeFamily.Node;
@@ -21,5 +23,11 @@ abstract public class Expr   {
     public boolean isVar(){return false;}
     public Expr addressNode() {
         throw new Error("unexpected node for LHS: " + getClass());
+    }
+    public ImmediateValue asmValue() {
+        throw new Error("Expr#asmValue called");
+    }
+    public MemoryReference getMemoryReference() {
+        throw new Error("Expr#memref called");
     }
 }
