@@ -69,13 +69,15 @@ public class SingleTest {
             IRRoot ir = irGenerator.getIR();
 
 
-            IRPrinter irPrinter = new IRPrinter(System.out);
-            ir.accept(irPrinter);
+
 
             CodeGenerator codeGenerator = new CodeGenerator();
             ir.accept(codeGenerator);
             AssemblyCode ac = codeGenerator.getAC();
 
+            IRPrinter irPrinter = new IRPrinter(System.out);
+            ir.accept(irPrinter);
+            
             ASMPrinter asmPrinter = new ASMPrinter(os);
             ac.accept(asmPrinter);
 

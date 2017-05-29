@@ -1,5 +1,6 @@
 package simplespy.compiler2017.NodeFamily.IRNode;
 
+import jdk.nashorn.internal.objects.Global;
 import simplespy.compiler2017.FrontEnd.ASTVisitor;
 import simplespy.compiler2017.FrontEnd.GlobalScope;
 import simplespy.compiler2017.FrontEnd.IRVisitor;
@@ -21,6 +22,7 @@ public class IRRoot{
     public GlobalScope scope;
     public Map<String, FuncDefNode> funcs = new LinkedHashMap<>();//global functions
     public TypeTable typeTable;//class
+
 
     public void accept(IRVisitor visitor) {
         visitor.visit(this);

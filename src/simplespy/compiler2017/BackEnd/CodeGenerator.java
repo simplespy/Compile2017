@@ -85,6 +85,8 @@ public class CodeGenerator implements IRVisitor {
             numofGlobalString++;
         }else if (node.ir instanceof Malloc) {
             ac.define(new ImmediateValue(0));
+            ir.funcs.get("main").getIr().add(0, new Assign(node.getLoc(), new Addr(node), node.ir));
+
         }else if (node.ir instanceof Bin){
             ac.define(new ImmediateValue(calculate((Bin) node.ir)));
 
@@ -357,13 +359,12 @@ public class CodeGenerator implements IRVisitor {
         Node entity = node.getEntityForce();
         if (funcName.equals("getInt") && entity.equals(gl.get(funcName))){
             Symbol var = new Symbol(varBase + varnum++);
-            ac.addBss(var.name+':' + "resd 1" );
+            ac.addBss(var.name+':' + "\tresd 1" );
             acfunc.mov(var, si());
             acfunc.mov(new Symbol("fmtd"), di());
            
               call(new Symbol(transFuncName(funcName)));
-           
-            acfunc.mov(var,ax());
+            acfunc.mov(new DirectMemoryReference(var),ax());
 
         }
         else if (funcName.equals("getString") && entity.equals(gl.get(funcName))){
@@ -411,10 +412,13 @@ public class CodeGenerator implements IRVisitor {
         }else if (funcName.equals("println") && entity.equals(gl.get(funcName))){
             visit(node.getArgs().get(0));
             acfunc.mov(ax(), di());
-
-              call(new Symbol(transFuncName(funcName)));
-
-        }else if (funcName.equals("ord") && entity.equals(gl.string.get(funcName))){
+            call(new Symbol(transFuncName(funcName)));
+        }else if (funcName.equals("print") && entity.equals(gl.get(funcName))){
+            visit(node.getArgs().get(0));
+            acfunc.mov(ax(), di());
+            call(new Symbol(transFuncName(funcName)));
+        }
+        else if (funcName.equals("ord") && entity.equals(gl.string.get(funcName))){
             if (node.argThis != null){
                 visit(node.argThis);
                 acfunc.mov(ax(),cx());//first char
@@ -429,7 +433,6 @@ public class CodeGenerator implements IRVisitor {
                 visit(node.argThis);
                 acfunc.mov(new IndirectMemoryReference(0,ax()), ax());
             }
-              call(new Symbol(transFuncName(funcName)));
         } else if (funcName.equals("parseInt") && entity.equals(gl.string.get(funcName))) {
             visit(node.argThis);
             acfunc.mov(ax(), di());
@@ -594,7 +597,7 @@ public class CodeGenerator implements IRVisitor {
     public void visit(Addr node) {
         Node entity = node.entity;
         if (node.getAddress() != null){
-            acfunc.mov(node.getAddress(), ax());
+            acfunc.mov(new DirectMemoryReference(node.getAddress()), ax());
         }
         else if(entity.getType() instanceof ArrayType || entity.getType() instanceof ClassType){
             acfunc.mov(node.getMemoryReference(),ax());

@@ -7,7 +7,6 @@ import simplespy.compiler2017.NodeFamily.*;
 import simplespy.compiler2017.NodeFamily.IRNode.*;
 import simplespy.compiler2017.Utils.ListUtils;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 /**
@@ -302,7 +301,8 @@ public class IRGenerator implements ASTVisitor {
             }
         } else if (node.expr.type instanceof ArrayType) {
             if (node.member.name.equals("size")) {
-                returnExpr = transformExpr(node.expr);
+                argThis = transformExpr(node.expr);
+                returnExpr =  ref(ir.scope.array.get("size"));
             }
         } else {
             throw new Error("membernode");
@@ -312,7 +312,7 @@ public class IRGenerator implements ASTVisitor {
     @Override
     public void visit(SuffixOpNode node) {
         Expr expr = transformExpr(node.expr);
-        BinaryOpNode.BinaryOp op = node.getOp().toString().equals("++") ? BinaryOpNode.BinaryOp.ADD : BinaryOpNode.BinaryOp.SUB;
+        BinaryOpNode.BinaryOp op = node.getOp().toString().equals("INC") ? BinaryOpNode.BinaryOp.ADD : BinaryOpNode.BinaryOp.SUB;
         if (isStatement()) {
             transformOpAssign(node.getLoc(), node.type, op, expr, new Int(1));
         } else if (expr.isConstant()) {
