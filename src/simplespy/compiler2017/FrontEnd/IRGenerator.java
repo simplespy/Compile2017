@@ -287,7 +287,7 @@ public class IRGenerator implements ASTVisitor {
     public void visit(MemberNode node) {
         Node entity = node.getEntity();
         if (entity instanceof FuncDefNode){//member function
-            argThis = transformExpr(node.expr);
+            argThis = transformExpr(node.expr);//.addressNode();
             returnExpr =  ref(entity);
         }else if (entity instanceof VarDecNode){//member
             TypeNode type = node.expr.type;
@@ -512,9 +512,21 @@ public class IRGenerator implements ASTVisitor {
                 case XOR:
                     return new Int(left ^ right);
                 case SHL:
-                    return new Int(left >> right);
-                case SHR:
                     return new Int(left << right);
+                case SHR:
+                    return new Int(left >> right);
+                default:
+                    switch (op) {
+                        case EQ:    return new Int(left == right ? 1 : 0);
+                        case NE:    return new Int(left != right ? 1 : 0);
+                        case GT:   return new Int(left > right ? 1 : 0);
+                        case GE:   return new Int(left >= right ? 1 : 0);
+                        case LT:    return new Int(left < right ? 1 : 0);
+                        case LE:    return new Int(left <= right ? 1 : 0);
+                        default:
+                            throw new Error("unknown binary operator: " + op);
+                    }
+
             }
         }else if (leftexpr instanceof Str && rightexpr instanceof Str){
             String left = ((Str) leftexpr).getValue();

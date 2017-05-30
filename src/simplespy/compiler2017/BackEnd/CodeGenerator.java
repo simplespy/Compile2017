@@ -80,7 +80,7 @@ public class CodeGenerator implements IRVisitor {
         if (node.ir instanceof Int){
             ac.define(new ImmediateValue(((Int) node.ir).getValue()));
         }else if (node.ir instanceof Str){
-            ac.define(new Symbol('"'+((Str) node.ir).getValue()+'"'));
+            ac.define(new Symbol('`'+((Str) node.ir).getValue()+'`'));
             stringPool.get(((Str) node.ir).getValue()).isGlobal = true;
             numofGlobalString++;
         }else if (node.ir instanceof Malloc) {
@@ -124,7 +124,7 @@ public class CodeGenerator implements IRVisitor {
         stringPool.keySet().stream().filter(name -> stringPool.get(name).isGlobal == false).forEachOrdered(name -> {
             Label label = new Label();
             file.label(label);
-            Symbol symbol = new Symbol('"'+name+'"');
+            Symbol symbol = new Symbol('`'+name+'`');
             stringPool.get(name).setAddress(label.getSymbol());
             stringPool.get(name).setMemoryReference(new DirectMemoryReference(label.getSymbol()));
             file.define(new ImmediateValue(0),symbol);
@@ -327,17 +327,66 @@ public class CodeGenerator implements IRVisitor {
     private void compileStringOp(Bin node){
         //ax cx
         if (node.getOp().equals(BinaryOpNode.BinaryOp.ADD)){
-            ac.addExtern(new Symbol("strlen"));
+            Symbol strlen = new Symbol("strlen");
+            ac.addExtern(strlen);
+
+            acfunc.push(r15());//length of left
+            acfunc.push(r14());
+            acfunc.push(r13());
+            rsp += 8;
+
+            visit(node.getLeft());
+            acfunc.mov(ax(),r14());
+            acfunc.mov(ax(),di());
+            call(strlen);
+            acfunc.mov(ax(),r15());
+
+            visit(node.getRight());
+            acfunc.mov(ax(),r13());
+            acfunc.mov(ax(),di());
+            call(strlen);
+            acfunc.add(r15(),ax());//new length
+
             Symbol buffer = new Symbol(varBase + varnum++);
             ac.addBss(buffer.name+':' + "\tresd 20" );
 
-            visit(node.getLeft());
-            acfunc.mov(new IndirectMemoryReference(0,ax()), dx());
-            acfunc.mov(dx(),new DirectMemoryReference(buffer));
+            Symbol malloc = new Symbol("malloc");
+            acfunc.addExtern(malloc);
+            acfunc.mov(ax(),di());
+            call(malloc);
+            acfunc.mov(ax(),new DirectMemoryReference(buffer));//new Address
 
-            acfunc.mov(ax(), di());
+            Symbol strcpy = new Symbol("strcpy");
+            ac.addExtern(strcpy);
+            acfunc.mov(r14(), si());
+            acfunc.mov(ax(),di());
+            call(strcpy);
+            acfunc.mov(r13(), si());
+            acfunc.mov(new DirectMemoryReference(buffer), ax());
+            acfunc.add(r15(), ax());//add length
+            acfunc.mov(ax(),di());
+            call(strcpy);
+
+            acfunc.mov(new DirectMemoryReference(buffer), ax());
+            acfunc.pop(r13());//length of left
+            acfunc.pop(r14());
+            acfunc.pop(r15());
+            rsp -= 8;
+
+
+
+
+
+
+
+
+
+            //acfunc.mov(new IndirectMemoryReference(0,ax()), dx());
+            //acfunc.mov(dx(),new DirectMemoryReference(buffer));
+
+            /*acfunc.mov(ax(), di());
             
-            call(new Symbol("strlen"));
+            call(strlen);
            
             acfunc.lea(new DirectMemoryReference(buffer), cx());
             acfunc.add(ax(), cx());
@@ -345,7 +394,7 @@ public class CodeGenerator implements IRVisitor {
             visit(node.getRight());
             acfunc.mov(new IndirectMemoryReference(0,ax()), dx());
             acfunc.mov(dx(), new IndirectMemoryReference(0,cx()));
-            acfunc.mov(buffer, ax());
+            acfunc.mov(buffer, ax());*/
         }
 
 
@@ -359,25 +408,33 @@ public class CodeGenerator implements IRVisitor {
     public void visit(Call node) {
         String funcName = node.getEntityForce().getName();
         Node entity = node.getEntityForce();
+        Symbol malloc = new Symbol("malloc");
+
         if (funcName.equals("getInt") && entity.equals(gl.get(funcName))){
             Symbol var = new Symbol(varBase + varnum++);
             ac.addBss(var.name+':' + "\tresd 1" );
             acfunc.mov(var, si());
             acfunc.mov(new Symbol("fmtd"), di());
            
-              call(new Symbol(transFuncName(funcName)));
+            call(new Symbol(transFuncName(funcName)));
             acfunc.mov(new DirectMemoryReference(var),ax());
 
         }
         else if (funcName.equals("getString") && entity.equals(gl.get(funcName))){
-            Symbol var = new Symbol(varBase + varnum++);
-            ac.addBss(var.name+':' + "resd 20" );
-            acfunc.mov(var, si());
+            ac.addExtern(malloc);
+
+
+            acfunc.push(r15()); rsp += 8;
+            acfunc.mov(new ImmediateValue(300), di());
+            call(malloc);
+            acfunc.mov(ax(), r15());
             acfunc.mov(new Symbol("fmts"), di());
-             
-              call(new Symbol(transFuncName(funcName)));
-              
-            acfunc.mov(var,ax());
+            acfunc.mov(r15(),si());
+            call(new Symbol(transFuncName(funcName)));
+            acfunc.mov(r15(),ax());
+            acfunc.pop(r15());rsp -= 8;
+
+
         }
         else if (funcName.equals("toString") && entity.equals(gl.get(funcName))){
             Symbol var = new Symbol(varBase + varnum++);
@@ -408,8 +465,7 @@ public class CodeGenerator implements IRVisitor {
         }else if (funcName.equals("length") && entity.equals(gl.string.get(funcName))){
             visit(node.argThis);
             acfunc.mov(ax(),di());
-
-              call(new Symbol(transFuncName(funcName)));
+            call(new Symbol(transFuncName(funcName)));
 
         }else if (funcName.equals("println") && entity.equals(gl.get(funcName))){
             visit(node.getArgs().get(0));
@@ -429,19 +485,60 @@ public class CodeGenerator implements IRVisitor {
                 acfunc.add(di(),cx());
                 acfunc.mov(new IndirectMemoryReference(0,cx()), ax());
             }
-              call(new Symbol(transFuncName(funcName)));
         } else if (funcName.equals("size") && entity.equals(gl.array.get(funcName))){
             if (node.argThis != null){
                 visit(node.argThis);
                 acfunc.mov(new IndirectMemoryReference(0,ax()), ax());
             }
         } else if (funcName.equals("parseInt") && entity.equals(gl.string.get(funcName))) {
+            Symbol sscanf = new Symbol("sscanf");
+            ac.addExtern(sscanf);
+            Symbol var = new Symbol(varBase + varnum++);
+            ac.addBss(var.name+':' + "\tresd 1" );
+
             visit(node.argThis);
             acfunc.mov(ax(), di());
-            
-              call(new Symbol("@string."+funcName));
-            
-            ac.addIntern(funcName);
+            acfunc.mov(new Symbol("fmtd"), si());
+            acfunc.mov(var, dx());
+            call(sscanf);
+            acfunc.mov(new DirectMemoryReference(var), ax());
+
+
+        }
+        else if (funcName.equals("substring") && entity.equals(gl.string.get(funcName))) {
+            Symbol  memcpy = new Symbol("memcpy");
+            ac.addExtern(memcpy);
+            ac.addExtern(malloc);
+            acfunc.push(r15());
+            acfunc.push(r14());
+            visit(node.argThis);
+            acfunc.mov(ax(), di());//address
+            visit(node.getArgs().get(0));
+            acfunc.mov(ax(),si());//int left
+            visit(node.getArgs().get(1));
+            acfunc.mov(ax(),dx());//int right
+
+            acfunc.mov(di(),r15());
+            acfunc.add(si(),r15());//address
+            acfunc.mov(dx(),r14());
+            acfunc.sub(si(),r14());//length
+
+            acfunc.mov(r14(),di());
+            call(malloc);
+
+            acfunc.mov(ax(),di());//new Address
+            acfunc.mov(r15(),si());
+            acfunc.mov(r14(),dx());
+            call(memcpy);
+
+            acfunc.mov(ax(),r15());
+            acfunc.add(r14(),r15());
+            acfunc.mov(new ImmediateValue(0), r15());
+            acfunc.pop(r14());
+            acfunc.pop(r15());
+
+
+
         }
         else{
             int i = 0;
@@ -485,7 +582,8 @@ public class CodeGenerator implements IRVisitor {
 
     @Override
     public void visit(CJump node) {
-        visit(node.getCond());
+        if(node.getCond() == null) acfunc.mov(new ImmediateValue(1), ax());
+        else visit(node.getCond());
         acfunc.test(ax(),ax());
         acfunc.jnz(node.getThen());
         acfunc.jmp(node.getOtherwise());
@@ -697,6 +795,8 @@ public class CodeGenerator implements IRVisitor {
     }
     private Register r8(){return new Register(Register.RegisterClass.R8);}
     private Register r9(){return new Register(Register.RegisterClass.R9);}
+    private Register r14(){return new Register(Register.RegisterClass.R14);}
+    private Register r13(){return new Register(Register.RegisterClass.R13);}
     private Register r15(){return new Register(Register.RegisterClass.R15);}
 
     static final Register.RegisterClass[] CALLEE_SAVE_REGISTERS = {
