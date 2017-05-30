@@ -30,4 +30,5 @@ abstract public class Expr   {
     public MemoryReference getMemoryReference() {
         throw new Error("Expr#memref called");
     }
+    public boolean isString(){return false;}
 }

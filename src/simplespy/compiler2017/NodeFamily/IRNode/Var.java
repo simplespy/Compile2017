@@ -31,4 +31,10 @@ public class Var extends Expr {
         return entity.getMemoryReference();
     }
     public boolean isVar(){return true;}
+
+    @Override
+    public boolean isString() {
+        if (entity.getType().toString().equals("STRING")) return true;
+        else return false;
+    }
 }

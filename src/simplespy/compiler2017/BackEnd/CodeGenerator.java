@@ -51,7 +51,7 @@ public class CodeGenerator implements IRVisitor {
 
     private void locateSymbols(IRRoot ir) {//global variables
         for (VarDecNode var : ir.vars){
-            Symbol sym = new Symbol(var.getName());
+            Symbol sym = new Symbol("var@"+var.getName());
             var.setAddress(sym);
             var.setMemoryReference(new DirectMemoryReference(sym));
         }
@@ -64,14 +64,14 @@ public class CodeGenerator implements IRVisitor {
         file.label("fmts");
         file.define(new ImmediateValue(0),new Symbol("\"%s\""));
         gvars.stream().filter(x->x.init != null && !(x.init instanceof NullLiteralNode)).forEachOrdered(x ->{
-            Symbol sym = file.label(x.getName());
+            Symbol sym = file.label("var@"+x.getName());
             x.setAddress(sym );
             x.setMemoryReference(new DirectMemoryReference(sym));
             initialize(x);
         });
         file._bss();
         gvars.stream().filter(x->x.init == null).forEachOrdered(x ->{
-            file.addBss(x.getName()+"\tresq \t1");
+            file.addBss("var@"+x.getName()+"\tresq \t1");
         });
         gvars.stream().forEachOrdered(this::visit);
     }
@@ -262,7 +262,7 @@ public class CodeGenerator implements IRVisitor {
         if (entity != null && entity.getType() instanceof BaseType && entity.getType().toString().equals("STRING")){
             compileStringOp(node);
         }
-        else if (node.getLeft() instanceof Str){
+        else if (node.isString()){
             compileStringOp(node);
 
         }

@@ -37,4 +37,9 @@ public class Bin extends Expr {
     public Node getEntityForce(){
         return left.getEntityForce();
     }
+
+    @Override
+    public boolean isString() {
+        return (left.isString() || right.isString());
+    }
 }

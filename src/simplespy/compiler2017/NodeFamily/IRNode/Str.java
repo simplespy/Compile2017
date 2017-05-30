@@ -33,4 +33,9 @@ public class Str extends Expr {
     public MemoryReference getMemoryReference() {
         return entry.getMemoryReference();
     }
+
+    @Override
+    public boolean isString() {
+        return true;
+    }
 }
