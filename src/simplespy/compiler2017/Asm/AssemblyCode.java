@@ -212,10 +212,10 @@ public class AssemblyCode {
         assemblies.add(label);
     }
     public void define(Operand value){
-        assemblies.add(new Instruction("dd", value));
+        assemblies.add(new Instruction("dq", value));
     }
     public void define(Operand value, Operand suffix){
-        assemblies.add(new Instruction("dd", value, suffix));
+        assemblies.add(new Instruction("dq", value, suffix));
     }
     public void virtualPop(Register reg){
         mov(virtualStack.top(), reg);

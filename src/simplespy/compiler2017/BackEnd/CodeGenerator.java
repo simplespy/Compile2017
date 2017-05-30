@@ -262,6 +262,10 @@ public class CodeGenerator implements IRVisitor {
         if (entity != null && entity.getType() instanceof BaseType && entity.getType().toString().equals("STRING")){
             compileStringOp(node);
         }
+        else if (node.getLeft() instanceof Str){
+            compileStringOp(node);
+
+        }
         else{
             visit(node.getRight());
             acfunc.virtualPush(ax());
@@ -694,20 +698,20 @@ public class CodeGenerator implements IRVisitor {
     public void visit(Addr node) {
         Node entity = node.entity;
         if (node.getAddress() != null){
-            acfunc.mov(new DirectMemoryReference(node.getAddress()), ax());
+            acfunc.mov(new DirectMemoryReference(node.getAddress()), eax());
         }
         else if(entity.getType() instanceof ArrayType || entity.getType() instanceof ClassType){
-            acfunc.mov(node.getMemoryReference(),ax());
+            acfunc.mov(node.getMemoryReference(),eax());
         }
         else{
-            acfunc.lea(node.getMemoryReference(),ax());
+            acfunc.lea(node.getMemoryReference(),eax());
         }
     }
 
     @Override
     public void visit(Mem node) {
         visit(node.expr);
-        acfunc.mov(new IndirectMemoryReference(0, ax()), ax());
+        acfunc.mov(new IndirectMemoryReference(0, ax()), eax());
     }
 
     @Override

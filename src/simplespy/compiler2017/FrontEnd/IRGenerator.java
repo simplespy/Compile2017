@@ -263,11 +263,8 @@ public class IRGenerator implements ASTVisitor {
             assign(node.getLoc(), left, right);
             returnExpr = null;
         } else {
-            if (right.isConstant() && left.isConstant()) {
-                returnExpr = calculate(node.getOp(), left, right);
-            } else {
                 returnExpr = new Bin(node.getOp(), left, right);
-            }
+
         }
     }
 
@@ -529,10 +526,10 @@ public class IRGenerator implements ASTVisitor {
 
             }
         }else if (leftexpr instanceof Str && rightexpr instanceof Str){
-            String left = ((Str) leftexpr).getValue();
+           /* String left = ((Str) leftexpr).getValue();
             String right =  ((Str) rightexpr).getValue();
 
-            if (op.equals(BinaryOpNode.BinaryOp.ADD)) return new Str(left.concat(right), null);
+            if (op.equals(BinaryOpNode.BinaryOp.ADD)) return new Str(left.concat(right), null);*/
         }else{
             throw  new Error("constant calculate");
         }

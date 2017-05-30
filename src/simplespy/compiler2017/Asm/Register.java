@@ -35,6 +35,8 @@ public class Register extends Operand {
             return reg;
         }
         if (reg.equals("al")) return "al";
+        if (reg.equals("cl")) return "cl";
+
         switch (type){
             case INT8:
                 if (reg.lastIndexOf('x') == 1) reg.replace('x','l');
