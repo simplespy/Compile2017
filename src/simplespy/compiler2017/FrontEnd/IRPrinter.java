@@ -47,6 +47,12 @@ public class IRPrinter implements IRVisitor {
     @Override
     public void visit(Call node) {
         out.println(indent.toString() + "<<" + node.getClass().getSimpleName() + ">>" );
+        if (node.argThis != null) {
+            out.println(indent.toString() + "argThis : ");
+            inc();
+            visit(node.argThis);
+            dec();
+        }
         out.println(indent.toString() + "Args : " );
         inc();
         node.getArgs().stream().forEachOrdered(this::visit);

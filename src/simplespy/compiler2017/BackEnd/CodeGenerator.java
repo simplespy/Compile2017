@@ -372,29 +372,24 @@ public class CodeGenerator implements IRVisitor {
             acfunc.pop(r14());
             acfunc.pop(r15());
             rsp -= 8;
+        }
+        else {
+            Symbol strcmp = new Symbol("strcmp");
+            ac.addExtern(strcmp);
+            call(strcmp);
+            acfunc.cmp(new ImmediateValue(0), eax());
+            acfunc.mov(new ImmediateValue(0), ax());
+            switch (node.getOp()) {
+                case EQ:    acfunc.sete (al()); break;
+                case NE:    acfunc.setne(al()); break;
+                case GT:    acfunc.setg (al()); break;
+                case GE:    acfunc.setge(al()); break;
+                case LT:    acfunc.setl (al()); break;
+                case LE:    acfunc.setle(al()); break;
+                default:
+                    throw new Error("unknown binary operator: ");
 
-
-
-
-
-
-
-
-
-            //acfunc.mov(new IndirectMemoryReference(0,ax()), dx());
-            //acfunc.mov(dx(),new DirectMemoryReference(buffer));
-
-            /*acfunc.mov(ax(), di());
-            
-            call(strlen);
-           
-            acfunc.lea(new DirectMemoryReference(buffer), cx());
-            acfunc.add(ax(), cx());
-
-            visit(node.getRight());
-            acfunc.mov(new IndirectMemoryReference(0,ax()), dx());
-            acfunc.mov(dx(), new IndirectMemoryReference(0,cx()));
-            acfunc.mov(buffer, ax());*/
+            }
         }
 
 
@@ -521,6 +516,7 @@ public class CodeGenerator implements IRVisitor {
             acfunc.mov(di(),r15());
             acfunc.add(si(),r15());//address
             acfunc.mov(dx(),r14());
+            acfunc.add(new ImmediateValue(1), r14());
             acfunc.sub(si(),r14());//length
 
             acfunc.mov(r14(),di());
@@ -643,7 +639,7 @@ public class CodeGenerator implements IRVisitor {
 
     @Override
     public void visit(Var node) {
-        acfunc.mov(node.getMemoryReference(), ax());
+        acfunc.mov(node.getMemoryReference(), eax());
     }
 
     @Override
@@ -776,6 +772,9 @@ public class CodeGenerator implements IRVisitor {
     }
     private Register ax(){
         return new Register(Register.RegisterClass.AX);
+    }
+    private Register eax(){
+        return new Register(Register.RegisterClass.AX, AsmType.INT32);
     }
     private Register cx(){return new Register(Register.RegisterClass.CX);}
     private Register dx(){return new Register(Register.RegisterClass.DX);}
