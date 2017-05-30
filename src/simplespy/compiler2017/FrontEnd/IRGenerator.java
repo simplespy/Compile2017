@@ -279,14 +279,24 @@ public class IRGenerator implements ASTVisitor {
         } else
             returnExpr = new Uni(node.getOp(), transformExpr(node.body));
     }
+    private ClassDefNode classEntity = null;
 
     @Override
     public void visit(MemberNode node) {
         Node entity = node.getEntity();
+        if(node.expr instanceof ThisNode) {
+            visit(node.member);
+            return;
+        }
         if (entity instanceof FuncDefNode){//member function
             argThis = transformExpr(node.expr);//.addressNode();
             returnExpr =  ref(entity);
-        }else if (entity instanceof VarDecNode){//member
+            if (node.expr.type instanceof ClassType){
+                String className = ((ClassType) node.expr.type).name;
+                classEntity = typeTable.getClassDefNode(className);
+            }
+        }
+        else if (entity instanceof VarDecNode){//member, classType
             TypeNode type = node.expr.type;
             Expr expr = transformExpr(node.expr).addressNode(); //&expr
             if (type instanceof ClassType) {
@@ -383,8 +393,6 @@ public class IRGenerator implements ASTVisitor {
 
     @Override
     public void visit(ThisNode node) {
-        returnExpr = new Var(node);
-        //to be done
     }
 
     Expr argThis = null;
@@ -404,6 +412,10 @@ public class IRGenerator implements ASTVisitor {
             VarDecNode tmp = tmpVar(node.getType());
             returnExpr = new Var(tmp);
             stmts.add(new Assign(node.getLoc(), returnExpr.addressNode(), call));
+        }
+        if (classEntity != null){
+            call.classEntity = classEntity;
+            classEntity = null;
         }
     }
 

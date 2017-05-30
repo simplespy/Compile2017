@@ -1,6 +1,5 @@
 package simplespy.compiler2017.BackEnd;
 
-import org.stringtemplate.v4.ST;
 import simplespy.compiler2017.Asm.*;
 import simplespy.compiler2017.FrontEnd.GlobalScope;
 import simplespy.compiler2017.FrontEnd.IRVisitor;
@@ -136,6 +135,19 @@ public class CodeGenerator implements IRVisitor {
             file.label(x);
             compileFunctionBody(file, funcs.get(x));
         });
+        ir.typeTable.getClassTypeMap().keySet().stream().forEachOrdered(x->{
+            String base = x;
+            ClassDefNode cd = ir.typeTable.getClassDefNode(x);
+            if (cd.constructor != null){
+                file.label(base+"@Constructor");
+                compileFunctionBody(file, cd.constructor);
+            }
+            cd.funcs.keySet().stream().forEachOrdered(y->{
+                FuncDefNode func = cd.funcs.get(y);
+                file.label(base+'@'+y);
+                compileFunctionBody(file, func);
+            });
+        });
     }
 
     private void compileFunctionBody(AssemblyCode file, FuncDefNode func){
@@ -203,6 +215,7 @@ public class CodeGenerator implements IRVisitor {
             if (var instanceof VarDecInBlockNode){
                 ((VarDecInBlockNode) var).getVardec().getMemoryReference().fixOffset(-len);
             }
+            else if (var instanceof ConstructorNode) continue;
             else var.getMemoryReference().fixOffset(-len);
         }
     }
@@ -736,6 +749,12 @@ public class CodeGenerator implements IRVisitor {
             acfunc.mov(ax(), new IndirectMemoryReference(0,cx()));
             acfunc.mov(cx(), ax());
         }
+        if (node.getEntity().getType() instanceof ClassType){
+            ClassDefNode cls = ir.typeTable.getClassDefNode(node.getEntity().getType().toString());
+            if (cls.constructor != null){
+                call(new Symbol(cls.name+'@'+"constructor"));
+            }
+        }
       //  acfunc.add(new ImmediateValue(STACK_WORD_SIZE), sp());
        /* acfunc.mov(new ImmediateValue(12), ax());
         acfunc.mov(new ImmediateValue(0), di());
@@ -764,7 +783,7 @@ public class CodeGenerator implements IRVisitor {
                 var = ((VarDecInBlockNode) vari).getVardec();
             }else if (vari instanceof VarDecNode){
                 var = (VarDecNode) vari;
-            }else break;
+            }else continue;
             if (var.getMemoryReference() != null){//parameters
                 continue;
             }

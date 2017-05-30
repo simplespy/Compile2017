@@ -29,8 +29,12 @@ public class Instruction extends Assembly {
     public void collectStatistics(Statistics stats) {
         stats.instructionUsed(op);
         if (operands == null) return;
-        for (int i = 0; i < operands.length; i++) {
+       try{
+           for (int i = 0; i < operands.length; i++) {
             operands[i].collectStatistics(stats);
+        }
+       }catch(Exception e) {
+            throw new Error("instruction error");
         }
     }
 

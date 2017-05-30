@@ -3,20 +3,17 @@ package simplespy.compiler2017.NodeFamily;
 import simplespy.compiler2017.FrontEnd.ASTVisitor;
 import simplespy.compiler2017.NodeFamily.IRNode.Stmt;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by spy on 17/3/30.
  */
-public class ConstructorNode extends ASTBranch {
-    public final String name;
-    public final BlockNode body;
+public class ConstructorNode extends FuncDefNode {
     public final Location loc;
-    public List<Stmt> ir;
 
     public ConstructorNode(String name, BlockNode body, Location loc) {
-        this.name = name;
-        this.body = body;
+        super(new BaseType(TypeNode.TYPENAME.VOID,null),name,new ArrayList<>(),body,loc);
         this.loc = loc;
     }
 

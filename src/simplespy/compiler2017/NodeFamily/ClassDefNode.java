@@ -1,5 +1,7 @@
 package simplespy.compiler2017.NodeFamily;
 
+import simplespy.compiler2017.Asm.IndirectMemoryReference;
+import simplespy.compiler2017.Asm.Register;
 import simplespy.compiler2017.FrontEnd.ASTVisitor;
 import simplespy.compiler2017.NodeFamily.IRNode.Expr;
 
@@ -62,6 +64,7 @@ public class ClassDefNode extends ASTBranch {
     }
     public void addVar(VarDecNode var){
         this.vars.add(var);
+        var.setMemoryReference(new IndirectMemoryReference(-this.getOffset(var), new Register(Register.RegisterClass.DI)));
     }
     public int getOffset(VarDecNode var){
         return vars.indexOf(var);

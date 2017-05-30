@@ -63,13 +63,9 @@ public class SingleTest {
                 throw new Exception();
             }
 
-
             IRGenerator irGenerator = new IRGenerator();
             ast.accept(irGenerator);
             IRRoot ir = irGenerator.getIR();
-
-
-
 
             CodeGenerator codeGenerator = new CodeGenerator();
             ir.accept(codeGenerator);

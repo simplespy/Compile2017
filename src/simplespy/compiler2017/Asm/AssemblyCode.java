@@ -12,8 +12,6 @@ public class AssemblyCode {
     List<Assembly> externs = new ArrayList<>();
     List<String> externList = new LinkedList<>();
     List<String> bss = new ArrayList<>();
-    Map<String, String> builtinFunctions = new LinkedHashMap<>();
-    List<String> internList = new ArrayList<>();
 
     public static SymbolTable table = new SymbolTable("L");
 
@@ -22,9 +20,6 @@ public class AssemblyCode {
     public VirtualStack virtualStack = new VirtualStack();
     final int stackWordSize = 8;
 
-    public AssemblyCode(){
-        setBuiltinFunctions();
-    }
 
 
     private Statistics statistics() {
@@ -45,20 +40,8 @@ public class AssemblyCode {
         });
     }
 
-    public void addIntern(String name){
-        if (internList.contains(name)) return;
-        internList.add(name);
-    }
-    public void addIntern(List<String> interns){
-        interns.stream().filter(x->!this.internList.contains(x)).forEachOrdered(x->this.internList.add(x));
-    }
 
-    public List<String> printIntern(){
-        List<String> print = new ArrayList<>();
-        this.internList.stream().forEachOrdered(x->print.add(builtinFunctions.get(x)));
-        return print;
 
-    }
     public void addExtern(Operand name){
         String newString = name.toString();
         if (externList.contains(newString)) return;
@@ -226,68 +209,6 @@ public class AssemblyCode {
     public boolean doesUses(Register reg) {
         return statistics().doesRegisterUsed(reg);
     }
-
-
-
-    private void setBuiltinFunctions(){
-        builtinFunctions.put("parseInt",
-                "@string.parseInt:\n" +
-                "    mov rdx, qword [rdi]\n" +
-                "    xor rax, rax\n" +
-                "    xor rcx, rcx\n" +
-                "__loop@string.parseInt:\n" +
-                "    cmp rdx, 0\n" +
-                "    je __loop_exit@string.parseInt\n" +
-                "    mov cl, byte [rdi+8]\n" +
-                "    cmp cl, 48\n" +
-                "    jl __loop_exit@string.parseInt\n" +
-                "    cmp cl, 57\n" +
-                "    jg __loop_exit@string.parseInt\n" +
-                "    \n" +
-                "    imul rax, 10\n" +
-                "    sub rcx, 48\n" +
-                "    add rax, rcx\n" +
-                "    inc rdi\n" +
-                "    dec rdx\n" +
-                "    jmp __loop@string.parseInt\n" +
-                "__loop_exit@string.parseInt:\n" +
-                "    ret");
-        builtinFunctions.put("substring",
-                "@string.substring:\n" +
-                "    add rdi, rsi\n" +
-                "    push rdi\n" +
-                "    push rsi\n" +
-                "    push rdx\n" +
-                "    mov rdi, rdx\n" +
-                "    sub rdi, rsi\n" +
-                "    add rdi, 9\n" +
-                "    call malloc\n" +
-                "    pop rdx\n" +
-                "    pop rsi\n" +
-                "    pop rdi\n" +
-                "    sub rdx, rsi\n" +
-                "    inc rdx\n" +
-                "    mov qword [rax], rdx\n" +
-                "    xor rsi, rsi\n" +
-                "    add rdi, 8\n" +
-                "__loop@string.substring:\n" +
-                "    cmp rdx, 0\n" +
-                "    je __loop_exit@string.substring\n" +
-                "    mov cl, byte [rdi]\n" +
-                "    mov byte [rax+rsi+8], cl\n" +
-                "    inc rsi\n" +
-                "    inc rdi\n" +
-                "    dec rdx\n" +
-                "    jmp __loop@string.substring\n" +
-                "__loop_exit@string.substring:\n" +
-                "    ret");
-    }
-
-
-
-
-
-
 
 
 

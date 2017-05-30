@@ -113,8 +113,12 @@ public class ScopeBuilder implements ASTVisitor {
 
     @Override
     public void visit(ConstructorNode node) {
-        visit(node.body);
-
+        pushScope(node.parameters);
+        node.body.getStmts().stream().forEachOrdered(x->x.setScope(scopeStack.peek()));
+        node.setScope(scopeStack.peek());
+        node.body.setScope(scopeStack.peek());
+        node.body.getStmts().stream().forEachOrdered(this::visit);
+        scopeStack.pop();
     }
 
     @Override
