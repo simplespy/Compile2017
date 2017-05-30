@@ -558,6 +558,28 @@ public class CodeGenerator implements IRVisitor {
 
 
         }
+        else if (node.classEntity != null){
+            visit(node.argThis);
+            acfunc.mov(ax(),di());
+            rsp += node.getArgs().size() * STACK_WORD_SIZE;
+            if (rsp % 16 != 0){
+                acfunc.align(0,true);
+                rsp += 8;
+                flag = true;
+            }else{acfunc.align(0,false);}
+            for (Expr arg: ListUtils.reverse(node.getArgs())) {
+                visit(arg);
+                acfunc.push(ax());
+            }
+            acfunc.call(new Symbol(node.classEntity.name+"@"+funcName));
+            if (flag){
+                acfunc.align(1,true);
+                rsp -= 8;
+                flag = false;
+            }else{acfunc.align(1,false);}
+            acfunc.add(new ImmediateValue(STACK_WORD_SIZE*node.getArgs().size()), sp());
+            rsp -= node.getArgs().size() * STACK_WORD_SIZE;
+        }
         else{
             int i = 0;
             rsp += node.getArgs().size() * STACK_WORD_SIZE;
