@@ -478,11 +478,16 @@ public class CodeGenerator implements IRVisitor {
         else if (funcName.equals("ord") && entity.equals(gl.string.get(funcName))){
             if (node.argThis != null){
                 visit(node.argThis);
-                acfunc.mov(ax(),cx());//first char
+                acfunc.virtualPush(ax()); //first char
                 visit(node.getArgs().get(0));
                 acfunc.mov(ax(),di());//arg
+                acfunc.virtualPop(cx());
                 acfunc.add(di(),cx());
-                acfunc.mov(new IndirectMemoryReference(0,cx()), ax());
+                acfunc.movsx(new Symbol("byte [rcx]"), ax());
+
+
+
+
             }
         } else if (funcName.equals("size") && entity.equals(gl.array.get(funcName))){
             if (node.argThis != null){
@@ -711,7 +716,7 @@ public class CodeGenerator implements IRVisitor {
     @Override
     public void visit(Mem node) {
         visit(node.expr);
-        acfunc.mov(new IndirectMemoryReference(0, ax()), eax());
+        acfunc.mov(new IndirectMemoryReference(0, ax()), ax());
     }
 
     @Override
