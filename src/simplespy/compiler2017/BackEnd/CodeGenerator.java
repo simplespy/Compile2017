@@ -71,7 +71,7 @@ public class CodeGenerator implements IRVisitor {
         });
         file._bss();
         gvars.stream().filter(x->x.init == null).forEachOrdered(x ->{
-            file.addBss(x.getName()+"\tresd\t1");
+            file.addBss(x.getName()+"\tresq \t1");
         });
         gvars.stream().forEachOrdered(this::visit);
     }
@@ -352,7 +352,7 @@ public class CodeGenerator implements IRVisitor {
             acfunc.add(r15(),ax());//new length
 
             Symbol buffer = new Symbol(varBase + varnum++);
-            ac.addBss(buffer.name+':' + "\tresd 20" );
+            ac.addBss(buffer.name+':' + "\tresq  20" );
 
             Symbol malloc = new Symbol("malloc");
             acfunc.addExtern(malloc);
@@ -411,10 +411,10 @@ public class CodeGenerator implements IRVisitor {
 
         if (funcName.equals("getInt") && entity.equals(gl.get(funcName))){
             Symbol var = new Symbol(varBase + varnum++);
-            ac.addBss(var.name+':' + "\tresd 1" );
+            ac.addBss(var.name+':' + "\tresq  1" );
             acfunc.mov(var, si());
             acfunc.mov(new Symbol("fmtd"), di());
-           
+
             call(new Symbol(transFuncName(funcName)));
             acfunc.mov(new DirectMemoryReference(var),ax());
 
@@ -437,7 +437,7 @@ public class CodeGenerator implements IRVisitor {
         }
         else if (funcName.equals("toString") && entity.equals(gl.get(funcName))){
             Symbol var = new Symbol(varBase + varnum++);
-            ac.addBss(var.name+':' + "\tresd 20" );
+            ac.addBss(var.name+':' + "\tresq  20" );
             visit(node.getArgs().get(0));
             acfunc.mov(ax(), dx());
             acfunc.mov(new Symbol("fmtd"), si());
@@ -493,7 +493,7 @@ public class CodeGenerator implements IRVisitor {
             Symbol sscanf = new Symbol("sscanf");
             ac.addExtern(sscanf);
             Symbol var = new Symbol(varBase + varnum++);
-            ac.addBss(var.name+':' + "\tresd 1" );
+            ac.addBss(var.name+':' + "\tresq  1" );
 
             visit(node.argThis);
             acfunc.mov(ax(), di());
@@ -643,7 +643,7 @@ public class CodeGenerator implements IRVisitor {
 
     @Override
     public void visit(Var node) {
-        acfunc.mov(node.getMemoryReference(), eax());
+        acfunc.mov(node.getMemoryReference(), ax());
     }
 
     @Override
