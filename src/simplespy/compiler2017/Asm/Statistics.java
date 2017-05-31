@@ -73,4 +73,5 @@ public class Statistics {
     protected <K> void incrementCount(Map<K, Integer> m, K key) {
         m.put(key, fetchCount(m, key) + 1);
     }
+
 }

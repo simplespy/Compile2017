@@ -138,10 +138,6 @@ public class CodeGenerator implements IRVisitor {
         ir.typeTable.getClassTypeMap().keySet().stream().forEachOrdered(x->{
             String base = x;
             ClassDefNode cd = ir.typeTable.getClassDefNode(x);
-            if (cd.constructor != null){
-                file.label(base+"@Constructor");
-                compileFunctionBody(file, cd.constructor);
-            }
             cd.funcs.keySet().stream().forEachOrdered(y->{
                 FuncDefNode func = cd.funcs.get(y);
                 file.label(base+'@'+y);
@@ -156,7 +152,7 @@ public class CodeGenerator implements IRVisitor {
         frame.lvarSize = locateLocalVars(func.scope);
         AssemblyCode body = compileStmts(func);
         frame.saveRegs = usedCalleeSaveRegisters(body);
-        frame.tempSize = ac.virtualStack.getMax();
+        frame.tempSize = body.virtualStack.getMax();
 
         fixLocalVariableOffsets(func.scope, frame.lvarOffset());
         fixTempVariableOffsets(body, frame.tempOffset());
@@ -554,58 +550,63 @@ public class CodeGenerator implements IRVisitor {
             acfunc.mov(new ImmediateValue(0), r15());
             acfunc.pop(r14());
             acfunc.pop(r15());
-
-
-
         }
-        else if (node.classEntity != null){
-            visit(node.argThis);
-            acfunc.mov(ax(),di());
-            rsp += node.getArgs().size() * STACK_WORD_SIZE;
-            if (rsp % 16 != 0){
-                acfunc.align(0,true);
-                rsp += 8;
-                flag = true;
-            }else{acfunc.align(0,false);}
-            for (Expr arg: ListUtils.reverse(node.getArgs())) {
-                visit(arg);
-                acfunc.push(ax());
+        else if (entity instanceof FuncDefNode){
+            if (((FuncDefNode) entity).externClass != null) {
+                ClassDefNode classDefNode = ((FuncDefNode) entity).externClass;
+                visit(node.argThis);
+                acfunc.mov(ax(), r13());
+                rsp += node.getArgs().size() * STACK_WORD_SIZE;
+                if (rsp % 16 != 0) {
+                    acfunc.align(0, true);
+                    rsp += 8;
+                    flag = true;
+                } else {
+                    acfunc.align(0, false);
+                }
+                for (Expr arg : ListUtils.reverse(node.getArgs())) {
+                    visit(arg);
+                    acfunc.push(ax());
+                }
+                acfunc.call(new Symbol(classDefNode.name + "@" + funcName));
+                if (flag) {
+                    acfunc.align(1, true);
+                    rsp -= 8;
+                    flag = false;
+                } else {
+                    acfunc.align(1, false);
+                }
+                acfunc.add(new ImmediateValue(STACK_WORD_SIZE * node.getArgs().size()), sp());
+                rsp -= node.getArgs().size() * STACK_WORD_SIZE;
             }
-            acfunc.call(new Symbol(node.classEntity.name+"@"+funcName));
-            if (flag){
-                acfunc.align(1,true);
-                rsp -= 8;
-                flag = false;
-            }else{acfunc.align(1,false);}
-            acfunc.add(new ImmediateValue(STACK_WORD_SIZE*node.getArgs().size()), sp());
-            rsp -= node.getArgs().size() * STACK_WORD_SIZE;
-        }
-        else{
-            int i = 0;
-            rsp += node.getArgs().size() * STACK_WORD_SIZE;
-            if (rsp % 16 != 0){
-                acfunc.align(0,true);
-                rsp += 8;
-                flag = true;
-            }else{acfunc.align(0,false);}
-            for (Expr arg: ListUtils.reverse(node.getArgs())){
-                visit(arg);
-               // acfunc.sub(new ImmediateValue(8), sp());
-                acfunc.push(ax());
+            else{
+                int i = 0;
+                rsp += node.getArgs().size() * STACK_WORD_SIZE;
+                if (rsp % 16 != 0){
+                    acfunc.align(0,true);
+                    rsp += 8;
+                    flag = true;
+                }else{acfunc.align(0,false);}
+                for (Expr arg: ListUtils.reverse(node.getArgs())){
+                    visit(arg);
+                    // acfunc.sub(new ImmediateValue(8), sp());
+                    acfunc.push(ax());
 
                /* compileExpr(arg, PARAS_REG[node.getArgs().size()-1-i]);
                 if(i >= PARAS_REG.length) throw new Error("more than 6 paras");
                 ++i;*/
+                }
+                acfunc.call(new Symbol(transFuncName(funcName)));
+                if (flag){
+                    acfunc.align(1,true);
+                    rsp -= 8;
+                    flag = false;
+                }else{acfunc.align(1,false);}
+                acfunc.add(new ImmediateValue(STACK_WORD_SIZE*node.getArgs().size()), sp());
+                rsp -= node.getArgs().size() * STACK_WORD_SIZE;
             }
-              acfunc.call(new Symbol(transFuncName(funcName)));
-            if (flag){
-                acfunc.align(1,true);
-                rsp -= 8;
-                flag = false;
-            }else{acfunc.align(1,false);}
-            acfunc.add(new ImmediateValue(STACK_WORD_SIZE*node.getArgs().size()), sp());
-            rsp -= node.getArgs().size() * STACK_WORD_SIZE;
         }
+
     }
 
     private String transFuncName(String name){
@@ -774,7 +775,9 @@ public class CodeGenerator implements IRVisitor {
         if (node.getEntity().getType() instanceof ClassType){
             ClassDefNode cls = ir.typeTable.getClassDefNode(node.getEntity().getType().toString());
             if (cls.constructor != null){
-                call(new Symbol(cls.name+'@'+"constructor"));
+                acfunc.mov(ax(),di());
+
+                call(new Symbol(cls.name+'@'+cls.name));
             }
         }
       //  acfunc.add(new ImmediateValue(STACK_WORD_SIZE), sp());

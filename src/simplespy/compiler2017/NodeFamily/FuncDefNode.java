@@ -18,6 +18,8 @@ public class FuncDefNode extends ASTBranch {
     public final Location loc;
     public ReturnNode returnNode;
 
+    public ClassDefNode externClass = null;
+
     public List<Stmt> ir;
 
 

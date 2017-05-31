@@ -239,9 +239,13 @@ public class AssemblyCode {
         }
 
         public IndirectMemoryReference top(){
-            IndirectMemoryReference mem = new IndirectMemoryReference(-offset, new Register(Register.RegisterClass.BP));
+            IndirectMemoryReference mem = relocatableMem(-offset, new Register(Register.RegisterClass.BP));
             memrefs.add(mem);
             return mem;
+        }
+
+        private IndirectMemoryReference relocatableMem(int offset, Register base) {
+            return IndirectMemoryReference.relocatable(offset, base);
         }
 
         public void fixOffset(int diff) {

@@ -2,6 +2,7 @@ package simplespy.compiler2017.NodeFamily.IRNode;
 
 import simplespy.compiler2017.FrontEnd.IRVisitor;
 import simplespy.compiler2017.NodeFamily.ClassDefNode;
+import simplespy.compiler2017.NodeFamily.FuncDefNode;
 import simplespy.compiler2017.NodeFamily.Node;
 
 import java.util.List;
@@ -13,6 +14,7 @@ public class Call extends Expr {
     public Expr name;
     private List<Expr> args;
     public Expr argThis = null;
+    public FuncDefNode funcDefNode;
     public Call(Expr name, List<Expr> args){
         this.name = name;
         this.args = args;

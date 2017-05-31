@@ -57,6 +57,14 @@ public class Register extends Operand {
     public RegisterClass getRegisterClass() {
         return registerClass;
     }
+    public boolean equals(Object other) {
+        return (other instanceof Register) && equals((Register)other);
+    }
+
+    /** size difference does NOT matter. */
+    public boolean equals(Register reg) {
+        return registerClass.equals(reg.registerClass);
+    }
 }
 
 

@@ -46,7 +46,12 @@ public class IRGenerator implements ASTVisitor {
         for (ASTBranch member : node.getMembers()){
             if (member instanceof FuncDefNode){
                 ((FuncDefNode) member).setIr(compileFunctionBody((FuncDefNode) member));
+                ((FuncDefNode) member).externClass = node;
                 node.addFunc((FuncDefNode) member);
+             //   ((FuncDefNode) member).parameters.add(0,new VarDecNode(null, "@arg", null, null));
+                if (member instanceof ConstructorNode){
+                    node.constructor = (ConstructorNode)member;
+                }
             } else if (member instanceof VarDecNode) {
                 node.addVar((VarDecNode) member);
             }else if (member instanceof ConstructorNode){
@@ -402,6 +407,7 @@ public class IRGenerator implements ASTVisitor {
         List<Expr> args = new ArrayList<>();
         ListUtils.reverse(node.parameters).stream().forEachOrdered(x -> args.add(0, transformExpr(x)));
         Call call = new Call(transformExpr(node.name), args);
+        call.funcDefNode = node.entity;
         if (argThis != null){
             call.argThis = argThis;
             argThis = null;
@@ -438,7 +444,7 @@ public class IRGenerator implements ASTVisitor {
     }
 
     @Override
-    public void visit(NullLiteralNode node) {returnExpr = new Null();}
+    public void visit(NullLiteralNode node) {returnExpr = new Int(0);}
 
     @Override
     public void visit(EmptyNode node) {}
@@ -467,7 +473,7 @@ public class IRGenerator implements ASTVisitor {
         }
         else if (lhs instanceof Addr && rhs instanceof Addr){
             stmts.add(new Assign(loc, lhs, rhs));
-        }else if (lhs instanceof Addr && rhs instanceof Null){
+        }else if (lhs instanceof Addr && rhs instanceof Int){
             stmts.add(new Assign(loc, lhs, rhs));
         }
         else{
