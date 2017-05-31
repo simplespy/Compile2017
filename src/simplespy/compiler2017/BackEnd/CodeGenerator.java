@@ -775,9 +775,10 @@ public class CodeGenerator implements IRVisitor {
         if (node.getEntity().getType() instanceof ClassType){
             ClassDefNode cls = ir.typeTable.getClassDefNode(node.getEntity().getType().toString());
             if (cls.constructor != null){
-                acfunc.mov(ax(),di());
-
+                acfunc.virtualPush(ax());
+                acfunc.mov(ax(),r13());
                 call(new Symbol(cls.name+'@'+cls.name));
+                acfunc.virtualPop(ax());
             }
         }
       //  acfunc.add(new ImmediateValue(STACK_WORD_SIZE), sp());
