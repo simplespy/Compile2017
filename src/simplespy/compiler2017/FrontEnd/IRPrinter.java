@@ -216,4 +216,10 @@ public class IRPrinter implements IRVisitor {
         visit(node.spaceSize);
         dec();
     }
+
+    @Override
+    public void visit(This node) {
+        out.println(indent.toString() + "<<" + node.getClass().getSimpleName() + ">>" );
+
+    }
 }

@@ -28,4 +28,5 @@ public interface IRVisitor {
     void visit(Addr node);
     void visit(Mem node);
     void visit(Malloc node);
+    void visit(This node);
 }

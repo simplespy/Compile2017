@@ -302,7 +302,7 @@ public class IRGenerator implements ASTVisitor {
             }
         }
         else if (entity instanceof VarDecNode){//member, classType
-            TypeNode type = node.expr.type;
+            TypeNode type = node.expr.getType();
             Expr expr = transformExpr(node.expr).addressNode(); //&expr
             if (type instanceof ClassType) {
                 String className = ((ClassType) type).name;
@@ -398,6 +398,7 @@ public class IRGenerator implements ASTVisitor {
 
     @Override
     public void visit(ThisNode node) {
+        returnExpr = new This();
     }
 
     Expr argThis = null;

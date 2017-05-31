@@ -554,8 +554,12 @@ public class CodeGenerator implements IRVisitor {
         else if (entity instanceof FuncDefNode){
             if (((FuncDefNode) entity).externClass != null) {
                 ClassDefNode classDefNode = ((FuncDefNode) entity).externClass;
-                visit(node.argThis);
-                acfunc.mov(ax(), r13());
+
+                if (node.argThis != null){
+                    visit(node.argThis);
+                    acfunc.virtualPush(ax());
+                }
+
                 rsp += node.getArgs().size() * STACK_WORD_SIZE;
                 if (rsp % 16 != 0) {
                     acfunc.align(0, true);
@@ -568,7 +572,13 @@ public class CodeGenerator implements IRVisitor {
                     visit(arg);
                     acfunc.push(ax());
                 }
+                if (node.argThis != null) {
+                    acfunc.virtualPop(ax());
+                    acfunc.virtualPush(r13());
+                    acfunc.mov(ax(), r13());
+                }
                 acfunc.call(new Symbol(classDefNode.name + "@" + funcName));
+                if (node.argThis != null){ acfunc.virtualPop(r13());}
                 if (flag) {
                     acfunc.align(1, true);
                     rsp -= 8;
@@ -776,8 +786,10 @@ public class CodeGenerator implements IRVisitor {
             ClassDefNode cls = ir.typeTable.getClassDefNode(node.getEntity().getType().toString());
             if (cls.constructor != null){
                 acfunc.virtualPush(ax());
+                acfunc.virtualPush(r13());
                 acfunc.mov(ax(),r13());
                 call(new Symbol(cls.name+'@'+cls.name));
+                acfunc.virtualPop(r13());
                 acfunc.virtualPop(ax());
             }
         }
@@ -796,6 +808,11 @@ public class CodeGenerator implements IRVisitor {
         acfunc.syscall();
         acfunc.mov(ax(),current);*/
 
+    }
+
+    @Override
+    public void visit(This node) {
+        acfunc.mov(r13(),ax());
     }
 
     private int locateLocalVars(Scope scope){
