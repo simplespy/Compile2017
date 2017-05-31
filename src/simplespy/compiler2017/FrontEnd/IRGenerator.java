@@ -303,7 +303,7 @@ public class IRGenerator implements ASTVisitor {
         }
         else if (entity instanceof VarDecNode){//member, classType
             TypeNode type = node.expr.getType();
-            Expr expr = transformExpr(node.expr).addressNode(); //&expr
+            Expr expr = transformExpr(node.expr);//.addressNode();//&expr
             if (type instanceof ClassType) {
                 String className = ((ClassType) type).name;
                 ClassDefNode classEntity = typeTable.getClassDefNode(className);
