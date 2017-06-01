@@ -14,7 +14,7 @@ public class Malloc extends Expr {
     public Expr spaceSize;
     public Expr arraySize;
     public List<Expr> dimList = new ArrayList<>();
-    public Int baseSize;
+    public int baseSize;
 
 
 

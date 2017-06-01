@@ -771,7 +771,7 @@ public class CodeGenerator implements IRVisitor {
         Symbol malloc = new Symbol("malloc");
         acfunc.addExtern(malloc);
 
-        if (node.dimList.size() <= 1) {
+        if (node.dimList.size() < 1) {
             visit(node.spaceSize);
             acfunc.mov(ax(), di());
 
@@ -799,7 +799,7 @@ public class CodeGenerator implements IRVisitor {
         else {
             acfunc.push(r15());
             acfunc.push(r14());
-            HeapAllocate(node.dimList);
+            HeapAllocate(node.dimList, node);
             acfunc.pop(r14());
             acfunc.pop(r15());        }
 
@@ -807,7 +807,7 @@ public class CodeGenerator implements IRVisitor {
 
     }
 
-    void HeapAllocate(List<Expr> dimList){
+    void HeapAllocate(List<Expr> dimList, Malloc node){
         if (acfunc == null) acfunc = ac;
         Symbol malloc = new Symbol("malloc");
         acfunc.addExtern(malloc);
@@ -826,6 +826,57 @@ public class CodeGenerator implements IRVisitor {
             acfunc.mov(cx(), new IndirectMemoryReference(0,ax()));//save size info
             acfunc.inc(cx());
         if (dimList.size() == 1) {
+            if (node.getEntity().getType().getBaseType() instanceof ClassType){
+                ClassDefNode cls = ir.typeTable.getClassDefNode(node.getEntity().getType().getBaseType().toString());
+
+                acfunc.virtualPush(ax());
+
+                acfunc.mov(ax(),r14());//head address resetved in r14
+                acfunc.mov(new ImmediateValue(0), r15());//r15 = i
+                Label beginLable = new Label("Malloc@Begin_"+cls.name);
+                Label thenLabel = new Label("Malloc@Then_"+cls.name);
+                Label elseLabel = new Label("Malloc@Else_"+cls.name);
+                //r15 from offset 0
+                //cmp r15 and size
+                acfunc.label(beginLable);
+                acfunc.mov(r15(),ax());
+                acfunc.cmp(cx(),ax());
+                acfunc.setl(al());
+                acfunc.movzx(al(),ax());
+                acfunc.test(ax(),ax());
+                acfunc.jnz(thenLabel);
+                acfunc.jmp(elseLabel);
+                //if ax < size
+                acfunc.label(thenLabel);
+                acfunc.inc(r15());//++i
+                acfunc.mov(r15(),ax());
+                acfunc.mul(new ImmediateValue(8), ax());
+                acfunc.virtualPush(r14());
+                acfunc.add(ax(),r14());
+                acfunc.mov(new ImmediateValue(node.baseSize), di());
+                acfunc.virtualPush(cx());
+                call(malloc);
+                acfunc.virtualPop(cx());
+
+                if (cls.constructor != null) {
+                    acfunc.virtualPush(ax());
+                    acfunc.virtualPush(r13());
+                    acfunc.mov(ax(), r13());
+                    call(new Symbol(cls.name + '@' + cls.name));
+                    acfunc.virtualPop(r13());
+                    acfunc.virtualPop(ax());
+                }
+                acfunc.mov(ax(),new IndirectMemoryReference(0,r14()));
+                acfunc.virtualPop(r14());
+                acfunc.jmp(beginLable);
+                //else
+                acfunc.label(elseLabel);
+
+                acfunc.virtualPop(ax());
+
+            }
+
+
             return;
         }
         else {
@@ -853,7 +904,7 @@ public class CodeGenerator implements IRVisitor {
             acfunc.add(ax(),r14());
             acfunc.push(r15());
             acfunc.push(r14());
-            HeapAllocate(dimList.subList(1,dimList.size()));
+            HeapAllocate(dimList.subList(1,dimList.size()),node);
             acfunc.pop(r14());
             acfunc.pop(r15());
             acfunc.mov(ax(),new IndirectMemoryReference(0,r14()));

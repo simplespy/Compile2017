@@ -352,8 +352,8 @@ public class IRGenerator implements ASTVisitor {
             ClassDefNode type = ir.typeTable.getClassDefNode(((ClassType) node.getType()).name);
             baseSize = type.getMemorySize();
         }
-        space.baseSize = new Int(SIZE * baseSize);
-        Expr[] base = {space.baseSize};
+        space.baseSize = SIZE * baseSize;
+        Expr[] base = {new Int(space.baseSize)};
         node.item.stream().filter(x->x != null).forEachOrdered(x-> {
             Expr exprx = transformExpr(x);
             space.arraySize = exprx;
