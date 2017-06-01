@@ -955,7 +955,7 @@ public class CodeGenerator implements IRVisitor {
         return new Register(Register.RegisterClass.AX);
     }
     private Register eax(){
-        return new Register(Register.RegisterClass.AX, AsmType.INT32);
+        return new Register(Register.RegisterClass.AX);
     }
     private Register cx(){return new Register(Register.RegisterClass.CX);}
     private Register dx(){return new Register(Register.RegisterClass.DX);}
