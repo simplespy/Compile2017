@@ -150,7 +150,7 @@ public class CodeGenerator implements IRVisitor {
         StackFrame frame = new StackFrame();
         locateParameters(func.parameters);
         frame.lvarSize = locateLocalVars(func.scope);
-        AssemblyCode body = compileStmts(func);
+        AssemblyCode body = optimize(compileStmts(func));
         frame.saveRegs = usedCalleeSaveRegisters(body);
         frame.tempSize = body.virtualStack.getMax();
 
@@ -366,7 +366,7 @@ public class CodeGenerator implements IRVisitor {
             Symbol malloc = new Symbol("malloc");
             acfunc.addExtern(malloc);
             acfunc.mov(ax(),di());
-            acfunc.add(new ImmediateValue(1),di());
+            acfunc.inc(di());
 
             call(malloc);
             acfunc.mov(ax(),new DirectMemoryReference(buffer));//new Address
@@ -554,7 +554,7 @@ public class CodeGenerator implements IRVisitor {
             acfunc.mov(di(),r15());
             acfunc.add(si(),r15());//address
             acfunc.mov(dx(),r14());
-            acfunc.add(new ImmediateValue(1), r14());
+            acfunc.inc( r14());
             acfunc.sub(si(),r14());//length
 
             acfunc.mov(r14(),di());
@@ -567,7 +567,7 @@ public class CodeGenerator implements IRVisitor {
 
             acfunc.mov(ax(),r15());
             acfunc.add(r14(),r15());
-            acfunc.mov(new ImmediateValue(0), r15());
+            acfunc.xor(r15(),r15());
             acfunc.pop(r14());
             acfunc.pop(r15());
         }
@@ -843,7 +843,7 @@ public class CodeGenerator implements IRVisitor {
             call(malloc);//new address reserved in ax
 
             acfunc.virtualPop(cx());//dimsize reserved in cx
-            acfunc.add(new ImmediateValue(-1), cx());
+            acfunc.dec(cx());
             acfunc.mov(cx(), new IndirectMemoryReference(0,ax()));//save size info
             acfunc.inc(cx());
         if (dimList.size() == 1) {
@@ -853,7 +853,7 @@ public class CodeGenerator implements IRVisitor {
                 acfunc.virtualPush(ax());
 
                 acfunc.mov(ax(),r14());//head address resetved in r14
-                acfunc.mov(new ImmediateValue(0), r15());//r15 = i
+                acfunc.xor(r15(), r15());//r15 = i
                 Label beginLable = new Label("Malloc@Begin_"+cls.name+(mallocnum++));
                 Label thenLabel = new Label("Malloc@Then_"+cls.name+(mallocnum++));
                 Label elseLabel = new Label("Malloc@Else_"+cls.name+(mallocnum++));
@@ -902,7 +902,7 @@ public class CodeGenerator implements IRVisitor {
         }
         else {
             acfunc.mov(ax(),r14());//head address resetved in r14
-            acfunc.mov(new ImmediateValue(0), r15());//r15 = i
+            acfunc.xor(r15(), r15());//r15 = i
             Label beginLable = new Label("Malloc@Begin"+(mallocnum++));
             Label thenLabel = new Label("Malloc@Then"+(mallocnum++));
             Label elseLabel = new Label("Malloc@Else"+(mallocnum++));
@@ -1035,4 +1035,12 @@ public class CodeGenerator implements IRVisitor {
         }else{acfunc.align(1,false);}
     }
 
+
+
+
+    private AssemblyCode optimize(AssemblyCode body) {
+        body.apply(PeepholeOptimizer.defaultSet());
+        body.reduceLabels();
+        return body;
+    }
 }

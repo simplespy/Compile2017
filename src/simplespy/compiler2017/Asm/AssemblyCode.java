@@ -1,6 +1,7 @@
 package simplespy.compiler2017.Asm;
 
 import simplespy.compiler2017.BackEnd.ASMVisitor;
+import simplespy.compiler2017.BackEnd.PeepholeOptimizer;
 
 import java.util.*;
 
@@ -160,7 +161,9 @@ public class AssemblyCode {
     public void inc(Operand src) {
         assemblies.add(new Instruction("inc", src));
     }
-
+    public void dec(Operand src) {
+        assemblies.add(new Instruction("dec", src));
+    }
 
     public void div(Operand src) {
         assemblies.add(new Instruction("div", src));
@@ -210,6 +213,22 @@ public class AssemblyCode {
         return statistics().doesRegisterUsed(reg);
     }
 
+    public void apply(PeepholeOptimizer opt) {
+        assemblies = opt.optimize(assemblies);
+    }
+    public void reduceLabels() {
+        Statistics stats = statistics();
+        List<Assembly> result = new ArrayList<Assembly>();
+        for (Assembly asm : assemblies) {
+            if (asm instanceof Label && ! stats.doesSymbolUsed((Label)asm)) {
+                continue;
+            }
+            else {
+                result.add(asm);
+            }
+        }
+        assemblies = result;
+    }
 
 
     public class VirtualStack{

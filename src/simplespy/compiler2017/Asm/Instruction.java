@@ -10,8 +10,8 @@ import java.util.Arrays;
  * Created by spy on 5/18/17.
  */
 public class Instruction extends Assembly {
-    protected String op;
-    protected Operand[] operands;
+    public String op;
+    public Operand[] operands;
     protected boolean needRelocation;
 
     public Instruction(String op, Operand src, Operand dest){
@@ -26,6 +26,7 @@ public class Instruction extends Assembly {
         this.op = op;
     }
 
+
     public void collectStatistics(Statistics stats) {
         stats.instructionUsed(op);
         if (operands == null) return;
@@ -37,7 +38,11 @@ public class Instruction extends Assembly {
             throw new Error("instruction error");
         }
     }
-
+    public Symbol jmpDestination() {
+        if (operands[0] instanceof Symbol)return (Symbol) operands[0];
+        DirectMemoryReference ref = (DirectMemoryReference)operands[0];
+        return ref.value;
+    }
     @Override
     public String toString() {
         String line = op;
