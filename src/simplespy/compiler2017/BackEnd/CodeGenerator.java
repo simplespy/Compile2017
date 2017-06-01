@@ -59,7 +59,7 @@ public class CodeGenerator implements IRVisitor {
     private void generateDataSection(AssemblyCode file, List<VarDecNode> gvars){
         file._data();
         file.label("fmtd");
-        file.define(new ImmediateValue(0),new Symbol("\"%d\""));
+        file.define(new ImmediateValue(0),new Symbol("\"%ld\""));
         file.label("fmts");
         file.define(new ImmediateValue(0),new Symbol("\"%s\""));
         gvars.stream().filter(x->x.init != null && !(x.init instanceof NullLiteralNode)).forEachOrdered(x ->{
@@ -349,23 +349,25 @@ public class CodeGenerator implements IRVisitor {
             rsp += 8;
 
             visit(node.getLeft());
-            acfunc.mov(ax(),r14());
+            acfunc.mov(ax(),r14());//r14 = left
             acfunc.mov(ax(),di());
             call(strlen);
             acfunc.mov(ax(),r15());
 
             visit(node.getRight());
-            acfunc.mov(ax(),r13());
-            acfunc.mov(ax(),di());
+            acfunc.mov(ax(),r13());//r13 = right
+            acfunc.mov(ax(),di());//
             call(strlen);
             acfunc.add(r15(),ax());//new length
 
             Symbol buffer = new Symbol(varBase + varnum++);
-            ac.addBss(buffer.name+':' + "\tresq  20" );
+            ac.addBss(buffer.name+':' + "\tresq  1" );
 
             Symbol malloc = new Symbol("malloc");
             acfunc.addExtern(malloc);
             acfunc.mov(ax(),di());
+            acfunc.add(new ImmediateValue(1),di());
+
             call(malloc);
             acfunc.mov(ax(),new DirectMemoryReference(buffer));//new Address
 
@@ -430,8 +432,6 @@ public class CodeGenerator implements IRVisitor {
         }
         else if (funcName.equals("getString") && entity.equals(gl.get(funcName))){
             ac.addExtern(malloc);
-
-
             acfunc.push(r15()); rsp += 8;
             acfunc.mov(new ImmediateValue(300), di());
             call(malloc);
@@ -441,36 +441,56 @@ public class CodeGenerator implements IRVisitor {
             call(new Symbol(transFuncName(funcName)));
             acfunc.mov(r15(),ax());
             acfunc.pop(r15());rsp -= 8;
-
-
         }
         else if (funcName.equals("toString") && entity.equals(gl.get(funcName))){
             Symbol var = new Symbol(varBase + varnum++);
-            ac.addBss(var.name+':' + "\tresq  20" );
+            ac.addExtern(malloc);
+            ac.addBss(var.name+':' + "\tresq  1" );
+
+            acfunc.mov(new ImmediateValue(20), di());
+            call(malloc);
+            acfunc.mov(ax(),new DirectMemoryReference(var));//new Address
+
             visit(node.getArgs().get(0));
             acfunc.mov(ax(), dx());
             acfunc.mov(new Symbol("fmtd"), si());
-            acfunc.mov(var, di());
+            acfunc.mov(new DirectMemoryReference(var), di());
+          //    acfunc.mov(var, di());
 
-            call(new Symbol(transFuncName(funcName)));
 
-            acfunc.mov(var,ax());
-            /*  acfunc.push(r15());
-            acfunc.mov(new ImmediateValue(20), di());
-              call(new Symbol("malloc"));
-            acfunc.mov(ax(),r15());
-            acfunc.add(new ImmediateValue(8), r15());
-            acfunc.mov(r15(), di());
+            call(new Symbol(transFuncName(funcName)));//call sprintf
+            acfunc.mov(new DirectMemoryReference(var), ax());
+         //   acfunc.mov(var, ax());
+
+
+            /*
+             acfunc.virtualPush(ax());
+             acfunc.mov(new ImmediateValue(20), di());
+            call(malloc);
+            acfunc.mov(ax(),new DirectMemoryReference(var));//new Address
+            acfunc.virtualPop(dx());
             acfunc.mov(new Symbol("fmtd"), si());
-            acfunc.pop(dx());
-              call(new Symbol(transFuncName(funcName)));
-            acfunc.mov(r15(), di());
-              call(new Symbol("strlen"));
-            acfunc.mov(ax(),new Symbol("qword [r15 - 8]"));
-            acfunc.mov(r15(),ax());
-            acfunc.pop(r15());
-            acfunc.ret();*/
-        }else if (funcName.equals("length") && entity.equals(gl.string.get(funcName))){
+            acfunc.mov(ax(), di());
+            call(new Symbol(transFuncName(funcName)));
+            acfunc.mov(new DirectMemoryReference(var), ax());
+            /*
+             */
+
+
+   /*        ac.addExtern(malloc);
+            visit(node.getArgs().get(0));
+            acfunc.virtualPush(ax());
+            acfunc.mov(new ImmediateValue(20), di());
+            call(malloc);
+            acfunc.mov(ax(), di());
+            acfunc.mov(new Symbol("fmtd"), si());
+            acfunc.virtualPop(dx());
+            acfunc.virtualPush(ax());
+            call(new Symbol(transFuncName(funcName)));
+            acfunc.virtualPop(di());
+            acfunc.mov(ax(),new IndirectMemoryReference(0,di()));*/
+        }
+        else if (funcName.equals("length") && entity.equals(gl.string.get(funcName))){
             visit(node.argThis);
             acfunc.mov(ax(),di());
             call(new Symbol(transFuncName(funcName)));
@@ -749,13 +769,13 @@ public class CodeGenerator implements IRVisitor {
     public void visit(Addr node) {
         Node entity = node.entity;
         if (node.getAddress() != null){
-            acfunc.mov(new DirectMemoryReference(node.getAddress()), eax());
+            acfunc.mov(new DirectMemoryReference(node.getAddress()), ax());
         }
         else if(entity.getType() instanceof ArrayType || entity.getType() instanceof ClassType){
-            acfunc.mov(node.getMemoryReference(),eax());
+            acfunc.mov(node.getMemoryReference(),ax());
         }
         else{
-            acfunc.lea(node.getMemoryReference(),eax());
+            acfunc.lea(node.getMemoryReference(),ax());
         }
     }
 
@@ -956,7 +976,9 @@ public class CodeGenerator implements IRVisitor {
         return new Register(Register.RegisterClass.AX);
     }
     private Register eax(){
-        return new Register(Register.RegisterClass.AX);
+        return new Register(Register.RegisterClass.AX, AsmType.INT32);
+    }private Register edx(){
+        return new Register(Register.RegisterClass.DX, AsmType.INT32);
     }
     private Register cx(){return new Register(Register.RegisterClass.CX);}
     private Register dx(){return new Register(Register.RegisterClass.DX);}
