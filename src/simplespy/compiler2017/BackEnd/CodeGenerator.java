@@ -770,45 +770,104 @@ public class CodeGenerator implements IRVisitor {
         if (acfunc == null) acfunc = ac;
         Symbol malloc = new Symbol("malloc");
         acfunc.addExtern(malloc);
-        visit(node.spaceSize);
-        acfunc.mov(ax(),di());
 
-        call(malloc);
+        if (node.dimList.size() <= 1) {
+            visit(node.spaceSize);
+            acfunc.mov(ax(), di());
 
-        if (node.arraySize != null) {
-            acfunc.virtualPush(ax());
-            visit(node.arraySize);
-            acfunc.virtualPop(cx());
-            acfunc.mov(ax(), new IndirectMemoryReference(0,cx()));
-            acfunc.mov(cx(), ax());
-        }
-        if (node.getEntity().getType() instanceof ClassType){
-            ClassDefNode cls = ir.typeTable.getClassDefNode(node.getEntity().getType().toString());
-            if (cls.constructor != null){
+            call(malloc);
+
+            if (node.arraySize != null) {
                 acfunc.virtualPush(ax());
-                acfunc.virtualPush(r13());
-                acfunc.mov(ax(),r13());
-                call(new Symbol(cls.name+'@'+cls.name));
-                acfunc.virtualPop(r13());
-                acfunc.virtualPop(ax());
+                visit(node.arraySize);
+                acfunc.virtualPop(cx());
+                acfunc.mov(ax(), new IndirectMemoryReference(0, cx()));
+                acfunc.mov(cx(), ax());
+            }
+            if (node.getEntity().getType() instanceof ClassType) {
+                ClassDefNode cls = ir.typeTable.getClassDefNode(node.getEntity().getType().toString());
+                if (cls.constructor != null) {
+                    acfunc.virtualPush(ax());
+                    acfunc.virtualPush(r13());
+                    acfunc.mov(ax(), r13());
+                    call(new Symbol(cls.name + '@' + cls.name));
+                    acfunc.virtualPop(r13());
+                    acfunc.virtualPop(ax());
+                }
             }
         }
-      //  acfunc.add(new ImmediateValue(STACK_WORD_SIZE), sp());
-       /* acfunc.mov(new ImmediateValue(12), ax());
-        acfunc.mov(new ImmediateValue(0), di());
-        acfunc.syscall();
-        DirectMemoryReference initial = new DirectMemoryReference(new Symbol("initial_break"));
-        DirectMemoryReference current = new DirectMemoryReference(new Symbol("current_break"));
-        acfunc.mov(ax(), initial);
-        acfunc.mov(ax(), current);
-        visit(node.spaceSize);
-        acfunc.mov(current, di());
-        acfunc.add(ax(),di());
-        acfunc.mov(new ImmediateValue(12), ax());
-        acfunc.syscall();
-        acfunc.mov(ax(),current);*/
+        else {
+            acfunc.push(r15());
+            acfunc.push(r14());
+            HeapAllocate(node.dimList);
+            acfunc.pop(r14());
+            acfunc.pop(r15());        }
+
+
 
     }
+
+    void HeapAllocate(List<Expr> dimList){
+        if (acfunc == null) acfunc = ac;
+        Symbol malloc = new Symbol("malloc");
+        acfunc.addExtern(malloc);
+
+        //new int[3][4][5] dimList = {4,5,6}
+
+            Expr dimSize = dimList.get(0);//dimSize = 4
+            visit(dimSize);//dimsize reserved in ax
+            acfunc.virtualPush(ax());
+            acfunc.mul(new ImmediateValue(8), ax());//ax = 32
+            acfunc.mov(ax(),di());
+            call(malloc);//new address reserved in ax
+
+            acfunc.virtualPop(cx());//dimsize reserved in cx
+            acfunc.add(new ImmediateValue(-1), cx());
+            acfunc.mov(cx(), new IndirectMemoryReference(0,ax()));//save size info
+            acfunc.inc(cx());
+        if (dimList.size() == 1) {
+            return;
+        }
+        else {
+            acfunc.mov(ax(),r14());//head address resetved in r14
+            acfunc.mov(new ImmediateValue(0), r15());//r15 = i
+            Label beginLable = new Label("Malloc@Begin");
+            Label thenLabel = new Label("Malloc@Then");
+            Label elseLabel = new Label("Malloc@Else");
+            //r15 from offset 0
+            //cmp ax and size
+            acfunc.label(beginLable);
+            acfunc.mov(r15(),ax());
+            acfunc.cmp(cx(),ax());
+            acfunc.setl(al());
+            acfunc.movzx(al(),ax());
+            acfunc.test(ax(),ax());
+            acfunc.jnz(thenLabel);
+            acfunc.jmp(elseLabel);
+                //if ax < size
+            acfunc.label(thenLabel);
+            acfunc.inc(r15());//++i
+            acfunc.mov(r15(),ax());
+            acfunc.mul(new ImmediateValue(8), ax());
+            acfunc.virtualPush(r14());
+            acfunc.add(ax(),r14());
+            acfunc.push(r15());
+            acfunc.push(r14());
+            HeapAllocate(dimList.subList(1,dimList.size()));
+            acfunc.pop(r14());
+            acfunc.pop(r15());
+            acfunc.mov(ax(),new IndirectMemoryReference(0,r14()));
+            acfunc.virtualPop(r14());
+            acfunc.jmp(beginLable);
+            //else
+            acfunc.label(elseLabel);
+            acfunc.mov(r14(),ax());
+        }
+
+
+    }
+
+
 
     @Override
     public void visit(This node) {

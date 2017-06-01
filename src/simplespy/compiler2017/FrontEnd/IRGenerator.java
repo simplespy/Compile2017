@@ -347,12 +347,13 @@ public class IRGenerator implements ASTVisitor {
     public void visit(NewNode node) {
         Malloc space = new Malloc();
         space.setEntity(node);
-        int size = 1;
+        int baseSize = 1;
         if (node.getType() instanceof ClassType){
             ClassDefNode type = ir.typeTable.getClassDefNode(((ClassType) node.getType()).name);
-            size = type.getMemorySize();
+            baseSize = type.getMemorySize();
         }
-        Expr[] base = {new Int(SIZE * size)};
+        space.baseSize = new Int(SIZE * baseSize);
+        Expr[] base = {space.baseSize};
         node.item.stream().filter(x->x != null).forEachOrdered(x-> {
             Expr exprx = transformExpr(x);
             space.arraySize = exprx;
@@ -361,6 +362,8 @@ public class IRGenerator implements ASTVisitor {
                 addx = calculate(BinaryOpNode.BinaryOp.ADD, exprx, new Int(1));
             }else addx = new Bin(BinaryOpNode.BinaryOp.ADD, exprx, new Int(1));
             Expr total = new Bin(BinaryOpNode.BinaryOp.MUL, base[0], addx);
+            space.dimList.add(addx);
+
             base[0] = total;
         });
         space.spaceSize = base[0];
