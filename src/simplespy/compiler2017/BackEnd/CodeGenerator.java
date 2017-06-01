@@ -806,6 +806,7 @@ public class CodeGenerator implements IRVisitor {
 
 
     }
+    static int mallocnum = 0;
 
     void HeapAllocate(List<Expr> dimList, Malloc node){
         if (acfunc == null) acfunc = ac;
@@ -833,9 +834,9 @@ public class CodeGenerator implements IRVisitor {
 
                 acfunc.mov(ax(),r14());//head address resetved in r14
                 acfunc.mov(new ImmediateValue(0), r15());//r15 = i
-                Label beginLable = new Label("Malloc@Begin_"+cls.name);
-                Label thenLabel = new Label("Malloc@Then_"+cls.name);
-                Label elseLabel = new Label("Malloc@Else_"+cls.name);
+                Label beginLable = new Label("Malloc@Begin_"+cls.name+(mallocnum++));
+                Label thenLabel = new Label("Malloc@Then_"+cls.name+(mallocnum++));
+                Label elseLabel = new Label("Malloc@Else_"+cls.name+(mallocnum++));
                 //r15 from offset 0
                 //cmp r15 and size
                 acfunc.label(beginLable);
@@ -882,9 +883,9 @@ public class CodeGenerator implements IRVisitor {
         else {
             acfunc.mov(ax(),r14());//head address resetved in r14
             acfunc.mov(new ImmediateValue(0), r15());//r15 = i
-            Label beginLable = new Label("Malloc@Begin");
-            Label thenLabel = new Label("Malloc@Then");
-            Label elseLabel = new Label("Malloc@Else");
+            Label beginLable = new Label("Malloc@Begin"+(mallocnum++));
+            Label thenLabel = new Label("Malloc@Then"+(mallocnum++));
+            Label elseLabel = new Label("Malloc@Else"+(mallocnum++));
             //r15 from offset 0
             //cmp ax and size
             acfunc.label(beginLable);
