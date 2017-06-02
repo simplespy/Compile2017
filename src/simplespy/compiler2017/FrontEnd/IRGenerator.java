@@ -268,7 +268,12 @@ public class IRGenerator implements ASTVisitor {
             assign(node.getLoc(), left, right);
             returnExpr = null;
         } else {
-                returnExpr = new Bin(node.getOp(), left, right);
+            if (left instanceof Int && right instanceof Int) {
+                Int l = (Int) left;
+                Int r = (Int) right;
+                returnExpr = calculate(node.getOp(), l, r);
+            }
+                else returnExpr = new Bin(node.getOp(), left, right);
 
         }
     }

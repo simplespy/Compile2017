@@ -111,7 +111,7 @@ public class CodeGenerator implements IRVisitor {
                 case SHL:   return left >> right;
                 case SHR:   return left << right;
             }
-        }else if (node.getLeft() instanceof Int && node.getRight() instanceof Expr){
+        }else if (node.getLeft() instanceof Int && node.getRight() instanceof Bin){
         }else{
             throw new Error("constant");
         }
@@ -343,9 +343,9 @@ public class CodeGenerator implements IRVisitor {
             Symbol strlen = new Symbol("strlen");
             ac.addExtern(strlen);
 
-            acfunc.push(r15());//length of left
-            acfunc.push(r14());
-            acfunc.push(r13());
+            acfunc.virtualPush(r15());//length of left
+            acfunc.virtualPush(r14());
+            acfunc.virtualPush(r13());
             rsp += 8;
 
             visit(node.getLeft());
@@ -383,9 +383,9 @@ public class CodeGenerator implements IRVisitor {
             call(strcpy);
 
             acfunc.mov(new DirectMemoryReference(buffer), ax());
-            acfunc.pop(r13());//length of left
-            acfunc.pop(r14());
-            acfunc.pop(r15());
+            acfunc.virtualPop(r13());//length of left
+            acfunc.virtualPop(r14());
+            acfunc.virtualPop(r15());
             rsp -= 8;
         }
         else {
@@ -542,8 +542,8 @@ public class CodeGenerator implements IRVisitor {
             Symbol  memcpy = new Symbol("memcpy");
             ac.addExtern(memcpy);
             ac.addExtern(malloc);
-            acfunc.push(r15());
-            acfunc.push(r14());
+            acfunc.virtualPush(r15());
+            acfunc.virtualPush(r14());
             visit(node.argThis);
             acfunc.mov(ax(), di());//address
             visit(node.getArgs().get(0));
@@ -568,8 +568,8 @@ public class CodeGenerator implements IRVisitor {
             acfunc.mov(ax(),r15());
             acfunc.add(r14(),r15());
             acfunc.xor(r15(),r15());
-            acfunc.pop(r14());
-            acfunc.pop(r15());
+            acfunc.virtualPop(r14());
+            acfunc.virtualPop(r15());
         }
         else if (entity instanceof FuncDefNode){
             if (((FuncDefNode) entity).externClass != null) {
@@ -619,7 +619,6 @@ public class CodeGenerator implements IRVisitor {
                 }else{acfunc.align(0,false);}
                 for (Expr arg: ListUtils.reverse(node.getArgs())){
                     visit(arg);
-                    // acfunc.sub(new ImmediateValue(8), sp());
                     acfunc.push(ax());
 
                /* compileExpr(arg, PARAS_REG[node.getArgs().size()-1-i]);

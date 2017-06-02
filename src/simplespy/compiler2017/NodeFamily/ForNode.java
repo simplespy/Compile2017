@@ -2,6 +2,9 @@ package simplespy.compiler2017.NodeFamily;
 
 import simplespy.compiler2017.FrontEnd.ASTVisitor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by spy on 17/3/25.
  */
@@ -9,8 +12,9 @@ public class ForNode extends StmtNode {
     public final ExprNode init;
     public final ExprNode condition;
     public final ExprNode step;
-    public final StmtNode body;
+    public StmtNode body;
     public final Location loc;
+    public List<Node> ForUsedVars = new ArrayList<>();
 
     public Location getLoc() {
         return loc;

@@ -7,7 +7,7 @@ import simplespy.compiler2017.FrontEnd.ASTVisitor;
  */
 public class MemberNode extends ExprNode {
     public IDNode member;
-    public final ExprNode expr;
+    public  ExprNode expr;
     public Location loc;
 
     public MemberNode(ExprNode expr,IDNode member) {
@@ -21,7 +21,7 @@ public class MemberNode extends ExprNode {
 
     @Override
     public boolean Lv() {
-        return expr.Lv();
+        return member.Lv();
     }
 
     @Override

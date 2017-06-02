@@ -9,6 +9,7 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import simplespy.compiler2017.Asm.AssemblyCode;
 import simplespy.compiler2017.BackEnd.ASMPrinter;
 import simplespy.compiler2017.BackEnd.CodeGenerator;
+import simplespy.compiler2017.BackEnd.SpecialChecker;
 import simplespy.compiler2017.Exception.CompilationError;
 import simplespy.compiler2017.FrontEnd.*;
 import simplespy.compiler2017.NodeFamily.ASTRoot;
@@ -44,8 +45,7 @@ public class SingleTest {
             walker.walk(builder, tree);
             ASTRoot ast = builder.getAst();
 
-            ASTPrinter printer = new ASTPrinter(System.out);
-            ast.accept(printer);
+
 
             ScopeBuilder scopeBuilder = new ScopeBuilder();
             ast.accept(scopeBuilder);
@@ -62,6 +62,10 @@ public class SingleTest {
                 CompilationError.printExceptions();
                 throw new Exception();
             }
+            SpecialChecker specialChecker = new SpecialChecker();
+            ast.accept(specialChecker);
+            ASTPrinter printer = new ASTPrinter(System.out);
+            ast.accept(printer);
 
             IRGenerator irGenerator = new IRGenerator();
             ast.accept(irGenerator);
