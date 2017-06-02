@@ -47,9 +47,9 @@ public class Simpiler {
 
         //    ASTPrinter printer = new ASTPrinter(System.out);
         //    ast.accept(printer);
-            SpecialChecker specialChecker = new SpecialChecker();
-            ast.accept(specialChecker);
-            
+        //    SpecialChecker specialChecker = new SpecialChecker();
+        //    ast.accept(specialChecker);
+
             ScopeBuilder scopeBuilder = new ScopeBuilder();
             ast.accept(scopeBuilder);
 
