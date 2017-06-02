@@ -47,9 +47,8 @@ public class Simpiler {
 
         //    ASTPrinter printer = new ASTPrinter(System.out);
         //    ast.accept(printer);
-        //    SpecialChecker specialChecker = new SpecialChecker();
-        //    ast.accept(specialChecker);
 
+//
             ScopeBuilder scopeBuilder = new ScopeBuilder();
             ast.accept(scopeBuilder);
 
@@ -66,6 +65,8 @@ public class Simpiler {
                 throw new Exception();
             }
 
+           // SpecialChecker specialChecker = new SpecialChecker();
+           // ast.accept(specialChecker);
 
             IRGenerator irGenerator = new IRGenerator();
             ast.accept(irGenerator);

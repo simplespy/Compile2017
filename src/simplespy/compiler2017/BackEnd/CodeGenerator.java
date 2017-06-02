@@ -425,7 +425,6 @@ public class CodeGenerator implements IRVisitor {
             ac.addBss(var.name+':' + "\tresq  1" );
             acfunc.mov(var, si());
             acfunc.mov(new Symbol("fmtd"), di());
-
             call(new Symbol(transFuncName(funcName)));
             acfunc.mov(new DirectMemoryReference(var),ax());
 
@@ -1003,7 +1002,7 @@ public class CodeGenerator implements IRVisitor {
 
     static final Register.RegisterClass[] CALLEE_SAVE_REGISTERS = {
             Register.RegisterClass.BX, Register.RegisterClass.BP,
-            Register.RegisterClass.SI, Register.RegisterClass.DI
+            Register.RegisterClass.SI, Register.RegisterClass.DI, Register.RegisterClass.R12
     };
     class StackFrame{
         public List<Register> saveRegs;

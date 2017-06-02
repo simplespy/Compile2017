@@ -44,7 +44,8 @@ public class SingleTest {
             ASTBuilder builder = new ASTBuilder();
             walker.walk(builder, tree);
             ASTRoot ast = builder.getAst();
-
+            ASTPrinter printer = new ASTPrinter(System.out);
+            ast.accept(printer);
 
 
             ScopeBuilder scopeBuilder = new ScopeBuilder();
@@ -62,10 +63,9 @@ public class SingleTest {
                 CompilationError.printExceptions();
                 throw new Exception();
             }
-            SpecialChecker specialChecker = new SpecialChecker();
-            ast.accept(specialChecker);
-            ASTPrinter printer = new ASTPrinter(System.out);
-            ast.accept(printer);
+           // SpecialChecker specialChecker = new SpecialChecker();
+          //  ast.accept(specialChecker);
+
 
             IRGenerator irGenerator = new IRGenerator();
             ast.accept(irGenerator);

@@ -223,7 +223,7 @@ public class AssemblyCode {
         assemblies = result;
     }
     public void virtualPush(Register reg) {
-        if (virtualStack.cachePointer < 3){
+        if (virtualStack.cachePointer < 0){
             mov(reg, new Register(virtualStack.CACHE_REGISTERS[virtualStack.cachePointer]));
             ++virtualStack.cachePointer;
         }else {
@@ -243,7 +243,7 @@ public class AssemblyCode {
     }
     public class VirtualStack{
         public final Register.RegisterClass[] CACHE_REGISTERS =
-                {Register.RegisterClass.R10, Register.RegisterClass.R11, Register.RegisterClass.R12};
+                {Register.RegisterClass.R12};
         public int cachePointer;
         private int offset;
         private int max;
