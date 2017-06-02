@@ -186,10 +186,6 @@ public class AssemblyCode {
     public void lea(Operand src, Register dest) {
         assemblies.add(new Instruction("lea", src, dest));
     }
-    public void virtualPush(Register reg) {
-        virtualStack.extend(stackWordSize);
-        mov(reg, virtualStack.top());
-    }
 
     public Symbol label(String labelName){
         Symbol symbol = new Symbol(labelName);
@@ -205,10 +201,7 @@ public class AssemblyCode {
     public void define(Operand value, Operand suffix){
         assemblies.add(new Instruction("dq", value, suffix));
     }
-    public void virtualPop(Register reg){
-        mov(virtualStack.top(), reg);
-        virtualStack.rewind(stackWordSize);
-    }
+
     public boolean doesUses(Register reg) {
         return statistics().doesRegisterUsed(reg);
     }
@@ -229,9 +222,29 @@ public class AssemblyCode {
         }
         assemblies = result;
     }
+    public void virtualPush(Register reg) {
+        if (virtualStack.cachePointer < 3){
+            mov(reg, new Register(virtualStack.CACHE_REGISTERS[virtualStack.cachePointer]));
+            ++virtualStack.cachePointer;
+        }else {
+            virtualStack.extend(stackWordSize);
+            mov(reg, virtualStack.top());
+        }
+    }
 
-
+    public void virtualPop(Register reg){
+        if (virtualStack.cachePointer > 0){
+            --virtualStack.cachePointer;
+            mov(new Register(virtualStack.CACHE_REGISTERS[virtualStack.cachePointer]),reg);
+        }else {
+            mov(virtualStack.top(), reg);
+            virtualStack.rewind(stackWordSize);
+        }
+    }
     public class VirtualStack{
+        public final Register.RegisterClass[] CACHE_REGISTERS =
+                {Register.RegisterClass.R10, Register.RegisterClass.R11, Register.RegisterClass.R12};
+        public int cachePointer;
         private int offset;
         private int max;
         private List<IndirectMemoryReference> memrefs = new ArrayList<>();;
@@ -241,6 +254,7 @@ public class AssemblyCode {
         public void reset(){
             offset = 0;
             max = 0;
+            cachePointer = 0;
             memrefs.clear();
         }
         void extend(int len) {
