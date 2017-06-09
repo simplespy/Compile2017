@@ -233,7 +233,12 @@ public class CodeBuilder implements ASMVisitor{
         int offset = 0;
         for (Operand arg: ins.paras){
             if(i >= PARAS_REG.length) {
-                acfunc.mov(transfer(arg), new IndirectMemoryReference(offset*STACK_WORD_SIZE, sp));
+                Operand realArg = transfer(arg);
+                if (realArg.isMem()){
+                    acfunc.mov(realArg, ax);
+                    acfunc.mov(ax, new IndirectMemoryReference(offset*STACK_WORD_SIZE, sp));
+                }
+                else acfunc.mov(realArg, new IndirectMemoryReference(offset*STACK_WORD_SIZE, sp));
                 ++offset;
             }
             else {
