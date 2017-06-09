@@ -196,11 +196,17 @@ public class CodeBuilder implements ASMVisitor{
                 }
                 acfunc.xor(right, left);break;
             case SHL:
-                if (!(right instanceof ImmediateValue)) acfunc.mov(right, ax);
-                acfunc.sal(al, left);break;
+                acfunc.mov(right, cx);
+                acfunc.mov(left, ax);
+                acfunc.sal(cl, ax);
+                acfunc.mov(ax, left);
+                break;
             case SHR:
-                if (!(right instanceof ImmediateValue)) acfunc.mov(right, ax);
-                acfunc.shr(al, left);break;
+                acfunc.mov(right, cx);
+                acfunc.mov(left, ax);
+                acfunc.shr(cl, ax);
+                acfunc.mov(ax, left);
+                break;
             default:// Comparison operators
                 acfunc.mov(left, ax);
                 acfunc.cmp(right, ax);
