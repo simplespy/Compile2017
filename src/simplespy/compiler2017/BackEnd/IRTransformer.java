@@ -169,7 +169,7 @@ public class IRTransformer implements IRVisitor {
 
         else {
             curfunc.mov(left.getResult(), result);
-            if (node.getOp().equals(BinaryOpNode.BinaryOp.DIV) && right.getResult() instanceof ImmediateValue){
+            if ((node.getOp().equals(BinaryOpNode.BinaryOp.DIV) || node.getOp().equals(BinaryOpNode.BinaryOp.MOD)) && right.getResult() instanceof ImmediateValue){
                 VirReg tmp = new VirReg(curfunc);
                 curfunc.mov(right.getResult(), tmp);
                 curfunc.bin(node.getOp(),result,tmp);

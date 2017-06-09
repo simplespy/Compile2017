@@ -85,7 +85,7 @@ public class Simpiler {
             CodeBuilder codeBuilder = new CodeBuilder(sir);
             codeBuilder.build();
             AssemblyCode ac = codeBuilder.getAC();
-            
+
             ASMPrinter asmPrinter = new ASMPrinter(System.out);
             ac.accept(asmPrinter);
             BufferedReader br = new BufferedReader(new FileReader("lib/builtin_functions.asm"));
