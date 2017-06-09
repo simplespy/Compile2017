@@ -177,9 +177,24 @@ public class CodeBuilder implements ASMVisitor{
                 }
                 else acfunc.mov(ax, left);
                 break;
-            case BITWISE_AND:acfunc.and(right, left);break;
-            case BITWISE_OR:acfunc.or(right, left);break;
-            case XOR:acfunc.xor(right, left);break;
+            case BITWISE_AND:
+                if(left.isMem() && right.isMem()){
+                    acfunc.mov(right, ax);
+                    right = ax;
+                }
+                acfunc.and(right, left);break;
+            case BITWISE_OR:
+                if(left.isMem() && right.isMem()){
+                acfunc.mov(right, ax);
+                right = ax;
+                }
+                acfunc.or(right, left);break;
+            case XOR:
+                if(left.isMem() && right.isMem()){
+                    acfunc.mov(right, ax);
+                    right = ax;
+                }
+                acfunc.xor(right, left);break;
             case SHL:
                 if (!(right instanceof ImmediateValue)) acfunc.mov(right, ax);
                 acfunc.sal(al, left);break;

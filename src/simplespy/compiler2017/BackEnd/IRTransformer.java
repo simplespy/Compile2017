@@ -372,8 +372,8 @@ public class IRTransformer implements IRVisitor {
             curfunc.mov(size, newResult);
             curfunc.bin(BinaryOpNode.BinaryOp.MUL,newResult, new ImmediateValue(8));
             curfunc.bin(BinaryOpNode.BinaryOp.ADD,newResult, result);
-            if (type == 1) curfunc.mov(ClassAllocate(node),newResult);
-            else curfunc.mov(HeapAllocate(dimList.subList(1,dimList.size()),node),newResult);
+            if (type == 1) curfunc.mov(ClassAllocate(node),new MemoryReference(newResult));
+            else curfunc.mov(HeapAllocate(dimList.subList(1,dimList.size()),node),new MemoryReference(newResult));
             VirReg condition = new VirReg(curfunc);
             curfunc.mov(new ImmediateValue(0), condition);
             curfunc.bin(BinaryOpNode.BinaryOp.NE, condition, size);
