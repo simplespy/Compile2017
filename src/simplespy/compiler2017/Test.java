@@ -1,9 +1,8 @@
 package simplespy.compiler2017;
 
 import simplespy.compiler2017.Asm.AssemblyCode;
-import simplespy.compiler2017.BackEnd.ASMPrinter;
-import simplespy.compiler2017.BackEnd.CodeGenerator;
-import simplespy.compiler2017.BackEnd.SpecialChecker;
+import simplespy.compiler2017.BackEnd.*;
+import simplespy.compiler2017.BackEnd.SIR.SIR;
 import simplespy.compiler2017.Exception.CompilationError;
 import simplespy.compiler2017.FrontEnd.*;
 import simplespy.compiler2017.NodeFamily.ASTRoot;
@@ -75,9 +74,20 @@ public class Test {
                 IRPrinter irPrinter = new IRPrinter(os);
                 ir.accept(irPrinter);
 
-                CodeGenerator codeGenerator = new CodeGenerator();
-                ir.accept(codeGenerator);
-                AssemblyCode ac = codeGenerator.getAC();
+                IRTransformer irTransformer = new IRTransformer();
+                ir.accept(irTransformer);
+                SIR sir = irTransformer.getSir();
+                sir.createGraph();
+                sir.AnalyzeLiveness();
+
+                CodeBuilder codeBuilder = new CodeBuilder(sir);
+                codeBuilder.build();
+                AssemblyCode ac = codeBuilder.getAC();
+                ASMPrinter asmPrinter = new ASMPrinter(os);
+                ac.accept(asmPrinter);
+                BufferedReader br = new BufferedReader(new FileReader("lib/builtin_functions.asm"));
+                String line;
+                while ((line = br.readLine()) != null) os.println(line);
 
              //   ASMPrinter asmPrinter = new ASMPrinter(os);
               //  ac.accept(asmPrinter);

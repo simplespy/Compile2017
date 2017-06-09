@@ -2,10 +2,13 @@ package simplespy.compiler2017.NodeFamily;
 
 
 import simplespy.compiler2017.Asm.MemoryReference;
+import simplespy.compiler2017.Asm.Operand;
+import simplespy.compiler2017.Asm.Register;
 import simplespy.compiler2017.Asm.Symbol;
 import simplespy.compiler2017.FrontEnd.ASTVisitor;
 import simplespy.compiler2017.FrontEnd.IRPrinter;
 import simplespy.compiler2017.NodeFamily.IRNode.Expr;
+
 
 /**
  * Created by spy on 17/3/25.
@@ -18,6 +21,17 @@ public class VarDecNode extends ASTBranch {
     public Expr ir;
     public MemoryReference memoryReference;
     Symbol address;
+    public ClassDefNode externClass = null;
+
+    public Operand operand;
+
+    public void setOperand(Operand operand) {
+        this.operand = operand;
+    }
+    @Override
+    public Operand getOperand() {
+        return operand;
+    }
 
     public void setAddress(Symbol address) {
         this.address = address;
@@ -72,6 +86,11 @@ public class VarDecNode extends ASTBranch {
         this.ir = ir;
     }
     static private long tmpSeq = 0;
+
+    public VarDecNode getVardec() {
+        return this;
+    }
+
 
     static public VarDecNode tmp(TypeNode t) {
         return new VarDecNode(t, "@tmp" + tmpSeq++, null, null);

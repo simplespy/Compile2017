@@ -7,9 +7,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import simplespy.compiler2017.Asm.AssemblyCode;
-import simplespy.compiler2017.BackEnd.ASMPrinter;
-import simplespy.compiler2017.BackEnd.CodeGenerator;
-import simplespy.compiler2017.BackEnd.SpecialChecker;
+import simplespy.compiler2017.BackEnd.*;
+import simplespy.compiler2017.BackEnd.SIR.SIR;
 import simplespy.compiler2017.Exception.CompilationError;
 import simplespy.compiler2017.FrontEnd.*;
 import simplespy.compiler2017.NodeFamily.ASTRoot;
@@ -18,9 +17,7 @@ import simplespy.compiler2017.Parser.SimpilerLexer;
 import simplespy.compiler2017.Parser.SimpilerParser;
 
 
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.PrintStream;
+import java.io.*;
 
 /**
  * Created by spy on 17/3/22.
@@ -32,7 +29,7 @@ public class SingleTest {
             InputStream is = new FileInputStream("Test/SingleStmt.txt");//System.in;
             CompilationError.initialize();
             PrintStream os = new PrintStream("/Users/spy/programs/x86/first.asm");
-
+         //       os = System.out;
             ANTLRInputStream input = new ANTLRInputStream(is);
             SimpilerLexer lexer = new SimpilerLexer(input);
             CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -70,17 +67,33 @@ public class SingleTest {
             IRGenerator irGenerator = new IRGenerator();
             ast.accept(irGenerator);
             IRRoot ir = irGenerator.getIR();
-
-            CodeGenerator codeGenerator = new CodeGenerator();
+            IRPrinter irPrinter = new IRPrinter(System.out);
+            ir.accept(irPrinter);
+         /*   CodeGenerator codeGenerator = new CodeGenerator();
             ir.accept(codeGenerator);
             AssemblyCode ac = codeGenerator.getAC();
 
-            IRPrinter irPrinter = new IRPrinter(System.out);
-            ir.accept(irPrinter);
+
             
             ASMPrinter asmPrinter = new ASMPrinter(os);
-            ac.accept(asmPrinter);
+            ac.accept(asmPrinter);*/
 
+            IRTransformer irTransformer = new IRTransformer();
+            ir.accept(irTransformer);
+            SIR sir = irTransformer.getSir();
+          //  sir.createGraph();
+         //   sir.AnalyzeLiveness();
+            sir.Print();
+            //sir.PrintNext();
+
+            CodeBuilder codeBuilder = new CodeBuilder(sir);
+            codeBuilder.build();
+            AssemblyCode ac = codeBuilder.getAC();
+            ASMPrinter asmPrinter = new ASMPrinter(os);
+            ac.accept(asmPrinter);
+            BufferedReader br = new BufferedReader(new FileReader("lib/builtin_functions.asm"));
+            String line;
+            while ((line = br.readLine()) != null) os.println(line);
       //  } catch (Exception e) {
         //    System.exit(1);
        // }

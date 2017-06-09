@@ -134,28 +134,28 @@ public class AssemblyCode {
     public void movzx(Operand src, Operand dest){
         assemblies.add(new Instruction("movzx", src, dest));
     }
-    public void add(Operand src, Register dest) {
+    public void add(Operand src, Operand dest) {
         assemblies.add(new Instruction("add", src, dest));
     }
-    public void sub(Operand src, Register dest) {
+    public void sub(Operand src, Operand dest) {
         assemblies.add(new Instruction("sub", src, dest));
     }
-    public void mul(Operand src, Register dest) {
+    public void mul(Operand src, Operand dest) {
         assemblies.add(new Instruction("imul", src, dest));
     }
-    public void and(Operand src, Register dest) {
+    public void and(Operand src, Operand dest) {
         assemblies.add(new Instruction("and", src, dest));
     }
-    public void or(Operand src, Register dest) {
+    public void or(Operand src, Operand dest) {
         assemblies.add(new Instruction("or", src, dest));
     }
-    public void xor(Operand src, Register dest) {
+    public void xor(Operand src, Operand dest) {
         assemblies.add(new Instruction("xor", src, dest));
     }
-    public void sal(Operand src, Register dest) {
+    public void sal(Operand src, Operand dest) {
         assemblies.add(new Instruction("sal", src, dest));
     }
-    public void shr(Operand src, Register dest) {
+    public void shr(Operand src, Operand dest) {
         assemblies.add(new Instruction("shr", src, dest));
     }
     public void inc(Operand src) {
@@ -166,7 +166,7 @@ public class AssemblyCode {
     }
 
     public void div(Operand src) {
-        assemblies.add(new Instruction("div", src));
+        assemblies.add(new Instruction("idiv", src));
     }
     public void mod(Operand src, Register dest) {
         assemblies.add(new Instruction("mod", src, dest));
@@ -186,6 +186,7 @@ public class AssemblyCode {
     public void lea(Operand src, Register dest) {
         assemblies.add(new Instruction("lea", src, dest));
     }
+    public void comment(String comment){ assemblies.get(assemblies.size()-1).setComment(comment);}
 
     public Symbol label(String labelName){
         Symbol symbol = new Symbol(labelName);
@@ -197,6 +198,9 @@ public class AssemblyCode {
     }
     public void define(Operand value){
         assemblies.add(new Instruction("dq", value));
+    }
+    public void define(String length, Operand value){
+        assemblies.add(new Instruction(length, value));
     }
     public void define(Operand value, Operand suffix){
         assemblies.add(new Instruction("dq", value, suffix));

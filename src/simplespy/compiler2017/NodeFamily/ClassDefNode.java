@@ -64,6 +64,7 @@ public class ClassDefNode extends ASTBranch {
     }
     public void addVar(VarDecNode var){
         this.vars.add(var);
+        var.externClass = this;
         var.setMemoryReference(new IndirectMemoryReference(this.getOffset(var)*8, new Register(Register.RegisterClass.R13)));
     }
     public int getOffset(VarDecNode var){

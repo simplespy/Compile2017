@@ -1,7 +1,7 @@
 package simplespy.compiler2017.NodeFamily.IRNode;
 
-import simplespy.compiler2017.Asm.AsmType;
 import simplespy.compiler2017.Asm.ImmediateValue;
+import simplespy.compiler2017.Asm.Register;
 import simplespy.compiler2017.FrontEnd.IRVisitor;
 
 /**
@@ -9,14 +9,14 @@ import simplespy.compiler2017.FrontEnd.IRVisitor;
  */
 public class Int extends Expr{
     protected int value;
-    AsmType type;
+    Register.AsmType type;
 
-    public Int(int value, AsmType type) {
+    public Int(int value, Register.AsmType type) {
         this.value = value;
         this.type = type;
     }
     public Int(int value) {
-       this(value, AsmType.INT64);
+       this(value, Register.AsmType.INT64);
     }
 
     public int getValue() {

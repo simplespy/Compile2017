@@ -28,5 +28,8 @@ public abstract class TypeNode extends Node {
                 return 8;
         }
     }
+    public boolean isString(){
+        return false;
+    }
 
 }

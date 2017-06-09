@@ -45,6 +45,8 @@ public class GlobalScope extends Scope {
         addEntity(getInt);
         addEntity(toString);
 
+
+
     }
 
     private void addStringScope(){
@@ -66,6 +68,13 @@ public class GlobalScope extends Scope {
         string.addEntity(parseInt);
         string.addEntity(ord);
         string.addEntity(substring);
+
+        ClassDefNode string = new ClassDefNode("String", null);
+        length.externClass = string;
+        parseInt.externClass = string;
+        ord.externClass = string;
+        substring.externClass = string;
+
     }
 
     private void addArrayScope(){

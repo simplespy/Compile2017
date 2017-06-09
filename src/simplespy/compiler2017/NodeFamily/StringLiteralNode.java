@@ -16,11 +16,9 @@ public class StringLiteralNode extends ExprNode{
     public MemoryReference memoryReference;
     public ImmediateValue address;
 
-
     public void setMemoryReference(MemoryReference memoryReference) {
         this.memoryReference = memoryReference;
     }
-
     public MemoryReference getMemoryReference() {
         return memoryReference;
     }
@@ -57,5 +55,10 @@ public class StringLiteralNode extends ExprNode{
     }
     public boolean isConstant(){
         return true;
+    }
+
+    @Override
+    public TypeNode getType() {
+        return type;
     }
 }

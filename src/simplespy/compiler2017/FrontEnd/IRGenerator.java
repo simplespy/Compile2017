@@ -1,8 +1,6 @@
 package simplespy.compiler2017.FrontEnd;
 
-import simplespy.compiler2017.Asm.AsmType;
 import simplespy.compiler2017.Asm.Label;
-import simplespy.compiler2017.Asm.Symbol;
 import simplespy.compiler2017.NodeFamily.*;
 import simplespy.compiler2017.NodeFamily.IRNode.*;
 import simplespy.compiler2017.Utils.ListUtils;
@@ -48,11 +46,13 @@ public class IRGenerator implements ASTVisitor {
                 ((FuncDefNode) member).setIr(compileFunctionBody((FuncDefNode) member));
                 ((FuncDefNode) member).externClass = node;
                 node.addFunc((FuncDefNode) member);
+             //   member.name = node.name + '@' + member.name;
              //   ((FuncDefNode) member).parameters.add(0,new VarDecNode(null, "@arg", null, null));
                 if (member instanceof ConstructorNode){
                     node.constructor = (ConstructorNode)member;
                 }
-            } else if (member instanceof VarDecNode) {
+                ir.funcs.put(node.getName() + '_' + member.getName(), ((FuncDefNode) member));
+            }else if (member instanceof VarDecNode) {
                 node.addVar((VarDecNode) member);
             }else if (member instanceof ConstructorNode){
                 stmts = new ArrayList<>();
@@ -239,7 +239,7 @@ public class IRGenerator implements ASTVisitor {
             else {
                 Label rightLabel = new Label();
                 Label endLabel = new Label();
-                VarDecNode var = tmpVar(node.type);
+                VarDecNode var = tmpVar(node.getType());
                 assign(node.getLoc(), ref(var), left);
                 stmts.add(new CJump(node.getLoc(), ref(var), rightLabel, endLabel));
                 stmts.add(new LabelStmt(node.getLoc(), rightLabel));
@@ -256,7 +256,7 @@ public class IRGenerator implements ASTVisitor {
             else {
                 Label rightLabel = new Label();
                 Label endLabel = new Label();
-                VarDecNode var = tmpVar(node.type);
+                VarDecNode var = tmpVar(node.getType());
                 assign(node.getLoc(), ref(var), left);
                 stmts.add(new CJump(node.getLoc(), ref(var), endLabel, rightLabel));
                 stmts.add(new LabelStmt(node.getLoc(), rightLabel));
@@ -283,9 +283,9 @@ public class IRGenerator implements ASTVisitor {
         if (node.getOp().equals(UnaryOpNode.UnaryOp.POS)) {
             returnExpr = transformExpr(node.body);
         } else if (node.getOp().equals(UnaryOpNode.UnaryOp.INC)) {
-            returnExpr = transformOpAssign(node.getLoc(), node.type, BinaryOpNode.BinaryOp.ADD, transformExpr(node.body), new Int(1));
+            returnExpr = transformOpAssign(node.getLoc(), node.getType(), BinaryOpNode.BinaryOp.ADD, transformExpr(node.body), new Int(1));
         } else if (node.getOp().equals(UnaryOpNode.UnaryOp.DEC)) {
-            returnExpr = transformOpAssign(node.getLoc(), node.type, BinaryOpNode.BinaryOp.SUB, transformExpr(node.body), new Int(1));
+            returnExpr = transformOpAssign(node.getLoc(), node.getType(), BinaryOpNode.BinaryOp.SUB, transformExpr(node.body), new Int(1));
         } else
             returnExpr = new Uni(node.getOp(), transformExpr(node.body));
     }
@@ -301,10 +301,13 @@ public class IRGenerator implements ASTVisitor {
         if (entity instanceof FuncDefNode){//member function
             argThis = transformExpr(node.expr);//.addressNode();
             returnExpr =  ref(entity);
-            if (node.expr.type instanceof ClassType){
-                String className = ((ClassType) node.expr.type).name;
+            if (node.expr.getType() instanceof ClassType){
+                String className = ((ClassType) node.expr.getType()).name;
                 classEntity = typeTable.getClassDefNode(className);
             }
+           /* else if (node.expr.type.isString()){
+                classEntity = new ClassDefNode("String", null);
+            }*/
         }
         else if (entity instanceof VarDecNode){//member, classType
             TypeNode type = node.expr.getType();
@@ -316,7 +319,7 @@ public class IRGenerator implements ASTVisitor {
                 Expr addr = new Bin(BinaryOpNode.BinaryOp.ADD, expr, new Int(SIZE * offset));
                 returnExpr = node.isLoadable() ? new Mem(addr) : addr;
             }
-        } else if (node.expr.type instanceof ArrayType) {
+        } else if (node.expr.getType() instanceof ArrayType) {
             if (node.member.name.equals("size")) {
                 argThis = transformExpr(node.expr);
                 returnExpr =  ref(ir.scope.array.get("size"));
@@ -331,7 +334,7 @@ public class IRGenerator implements ASTVisitor {
         Expr expr = transformExpr(node.expr);
         BinaryOpNode.BinaryOp op = node.getOp().toString().equals("INC") ? BinaryOpNode.BinaryOp.ADD : BinaryOpNode.BinaryOp.SUB;
         if (isStatement()) {
-            transformOpAssign(node.getLoc(), node.type, op, expr, new Int(1));
+            transformOpAssign(node.getLoc(), node.getType(), op, expr, new Int(1));
         } else if (expr.isConstant()) {
             returnExpr = calculate(op, expr, new Int(1));
         } else if (expr.isVar()) {
@@ -340,8 +343,8 @@ public class IRGenerator implements ASTVisitor {
             assign(node.getLoc(), expr, new Bin(op, ref(tmp), new Int(1)));
             returnExpr = ref(tmp);
         } else {//arefnode
-            VarDecNode a = tmpVar(node.expr.type);
-            VarDecNode v = tmpVar(node.expr.type);
+            VarDecNode a = tmpVar(node.expr.getType());
+            VarDecNode v = tmpVar(node.expr.getType());
             assign(node.getLoc(), ref(a), expr.addressNode());
             assign(node.getLoc(), ref(v), mem(a));
             assign(node.getLoc(), mem(a), new Bin(op, mem(a), new Int(1)));
@@ -367,7 +370,7 @@ public class IRGenerator implements ASTVisitor {
                 addx = calculate(BinaryOpNode.BinaryOp.ADD, exprx, new Int(1));
             }else addx = new Bin(BinaryOpNode.BinaryOp.ADD, exprx, new Int(1));
             Expr total = new Bin(BinaryOpNode.BinaryOp.MUL, base[0], addx);
-            space.dimList.add(addx);
+            space.dimList.add(exprx);
 
             base[0] = total;
         });
@@ -388,13 +391,16 @@ public class IRGenerator implements ASTVisitor {
         Expr expr = transformExpr(node.getExpr());
         Expr index = transformExpr(node.getIndex());
         Expr offset;
-        if (index.isConstant()){
+      /*  if (index.isConstant()){
             Expr newindex = calculate(BinaryOpNode.BinaryOp.ADD, index, new Int(1));
             offset = calculate(BinaryOpNode.BinaryOp.MUL, new Int(SIZE), newindex);
         }else {
             Expr newindex = new Bin(BinaryOpNode.BinaryOp.ADD, index, new Int(1));
             offset = new Bin(BinaryOpNode.BinaryOp.MUL, new Int(SIZE), newindex);
-        }
+        }*/
+        if (index.isConstant()) offset = calculate(BinaryOpNode.BinaryOp.MUL, new Int(SIZE), index);
+        else offset = new Bin(BinaryOpNode.BinaryOp.MUL, new Int(SIZE), index);
+
         Expr addr;
         if (expr.isConstant() && offset.isConstant()){
             addr = calculate(BinaryOpNode.BinaryOp.ADD, expr, offset);
@@ -416,6 +422,7 @@ public class IRGenerator implements ASTVisitor {
         List<Expr> args = new ArrayList<>();
         ListUtils.reverse(node.parameters).stream().forEachOrdered(x -> args.add(0, transformExpr(x)));
         Call call = new Call(transformExpr(node.name), args);
+
         call.funcDefNode = node.entity;
         if (argThis != null){
             call.argThis = argThis;
@@ -459,6 +466,9 @@ public class IRGenerator implements ASTVisitor {
     public void visit(EmptyNode node) {}
 
     private VarDecNode tmpVar(TypeNode t) {
+        if (t == null){
+            throw new Error("tmpvar");
+        }
         return scopeStack.peek().allocateTmp(t);
     }
 
@@ -477,7 +487,7 @@ public class IRGenerator implements ASTVisitor {
     }
 
     private void assign(Location loc, Expr lhs, Expr rhs) {
-        if (lhs instanceof Addr && rhs instanceof Malloc){
+       /* if (lhs instanceof Addr && rhs instanceof Malloc){
             stmts.add(new Assign(loc, lhs, rhs));
         }
         else if (lhs instanceof Addr && rhs instanceof Addr){
@@ -486,7 +496,9 @@ public class IRGenerator implements ASTVisitor {
             stmts.add(new Assign(loc, lhs, rhs));
         }
         else{
-        stmts.add(new Assign(loc, lhs.addressNode(), rhs));}
+        stmts.add(new Assign(loc, lhs.addressNode(), rhs));}*/
+        stmts.add(new Assign(loc, lhs, rhs));
+
     }
 
     private Mem mem(Node ent) {

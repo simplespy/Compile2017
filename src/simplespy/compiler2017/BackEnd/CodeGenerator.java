@@ -69,10 +69,7 @@ public class CodeGenerator implements IRVisitor {
             initialize(x);
         });
         file._bss();
-        gvars.stream().filter(x->x.init == null).forEachOrdered(x ->{
-            file.addBss("var@"+x.getName()+"\tresq \t1");
-        });
-        gvars.stream().forEachOrdered(this::visit);
+        gvars.stream().filter(x->x.init == null).forEachOrdered(x -> file.addBss("var@"+x.getName()+"\tresq \t1"));
     }
 
     private void initialize(VarDecNode node){
@@ -209,7 +206,7 @@ public class CodeGenerator implements IRVisitor {
     private void fixLocalVariableOffsets(Scope scope, int len){
         for (Node var : scope.getEntities().values()){
             if (var instanceof VarDecInBlockNode){
-                ((VarDecInBlockNode) var).getVardec().getMemoryReference().fixOffset(-len);
+                 var.getVardec().getMemoryReference().fixOffset(-len);
             }
             else if (var instanceof ConstructorNode) continue;
             else var.getMemoryReference().fixOffset(-len);
@@ -243,21 +240,6 @@ public class CodeGenerator implements IRVisitor {
         file.mov(bp(),sp());
         file.pop(bp());
         file.ret();
-    }
-
-    private void compileExpr(Expr node, Register reg){
-        if(node instanceof Var){
-            acfunc.mov(node.getMemoryReference(), reg);
-        }
-        else if (node instanceof  Int){
-            acfunc.mov(new ImmediateValue(((Int)node).getValue()), reg);
-        }
-        else if (node instanceof Str){
-            acfunc.mov(stringPool.get(((Str)node).getValue()).getMemoryReference(), reg);
-        }
-        else{
-            throw new Error("compile expr");
-        }
     }
 
     @Override
@@ -974,9 +956,9 @@ public class CodeGenerator implements IRVisitor {
         return new Register(Register.RegisterClass.AX);
     }
     private Register eax(){
-        return new Register(Register.RegisterClass.AX, AsmType.INT32);
+        return new Register(Register.RegisterClass.AX, Register.AsmType.INT32);
     }private Register edx(){
-        return new Register(Register.RegisterClass.DX, AsmType.INT32);
+        return new Register(Register.RegisterClass.DX, Register.AsmType.INT32);
     }
     private Register cx(){return new Register(Register.RegisterClass.CX);}
     private Register dx(){return new Register(Register.RegisterClass.DX);}

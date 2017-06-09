@@ -78,7 +78,6 @@ public class BinaryOpNode extends ExprNode {
 
     @Override
     public TypeNode getType() {
-
             TypeNode l = getLeft().getType();
             TypeNode r  =getRight().getType();
             if(!checkType(l, r)){

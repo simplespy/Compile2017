@@ -1,5 +1,6 @@
 package simplespy.compiler2017.NodeFamily.IRNode;
 
+import simplespy.compiler2017.Asm.Operand;
 import simplespy.compiler2017.FrontEnd.IRVisitor;
 import simplespy.compiler2017.NodeFamily.BinaryOpNode;
 import simplespy.compiler2017.NodeFamily.Node;
@@ -8,8 +9,6 @@ import simplespy.compiler2017.NodeFamily.Node;
  * Created by spy on 17/4/15.
  */
 public class Bin extends Expr {
-
-
     protected BinaryOpNode.BinaryOp op;
     protected Expr left, right;
 
@@ -18,6 +17,12 @@ public class Bin extends Expr {
         this.left = left;
         this.right = right;
     }
+
+    @Override
+    public Operand getResult() {
+        return result;
+    }
+
     @Override
     public void accept(IRVisitor visitor) {
         visitor.visit(this);

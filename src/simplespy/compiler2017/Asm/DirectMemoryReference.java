@@ -15,8 +15,11 @@ public class DirectMemoryReference extends MemoryReference {
         throw new Error("DirectMemoryReference#fixOffset");
     }
     public String toString() {
-        return '['+value.name+']';
+        return "qword" + '['+value.name+']';
     }
 
-
+    @Override
+    public boolean isMem() {
+        return true;
+    }
 }

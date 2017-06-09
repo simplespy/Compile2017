@@ -4,7 +4,7 @@ package simplespy.compiler2017.Asm;
 import simplespy.compiler2017.BackEnd.ASMVisitor;
 import simplespy.compiler2017.Utils.ListUtils;
 
-import java.util.Arrays;
+import java.util.*;
 
 /**
  * Created by spy on 5/18/17.
@@ -13,6 +13,16 @@ public class Instruction extends Assembly {
     public String op;
     public Operand[] operands;
     protected boolean needRelocation;
+    public List<Instruction> next = new LinkedList<>();
+    public Set<Register> def = new HashSet<>();
+    public Set<Register> use = new HashSet<>();
+    public Set<Register> in = new HashSet<>();
+    public Set<Register> out = new HashSet<>();
+
+    public void setDefUse(){
+
+    }
+
 
     public Instruction(String op, Operand src, Operand dest){
         this.op = op;
@@ -50,9 +60,12 @@ public class Instruction extends Assembly {
         for (int i = operands.length-1; i >= 0; --i){
             if (i == operands.length-1) line += " ";
             else line += ", ";
+            if (operands[i] == null){
+                throw new Error("operand");
+            }
             line += operands[i].toString();
         }
-
+    if (comment != null) line += comment;
         return line;
     }
 
@@ -60,4 +73,6 @@ public class Instruction extends Assembly {
     public void accept(ASMVisitor visitor) {
         visitor.visit(this);
     }
+
+
 }

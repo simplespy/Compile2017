@@ -48,7 +48,6 @@ public class ArefNode extends ExprNode {
         TypeNode orig = this.expr.getType();
         if (!(orig instanceof ArrayType))
             CompilationError.exceptions.add(new SemanticException("Array reference error"));
-
         TypeNode newtype = ((ArrayType)orig).getLastType();
         return newtype;
     }

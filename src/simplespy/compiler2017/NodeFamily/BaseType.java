@@ -39,4 +39,10 @@ public class BaseType extends TypeNode {
     public TYPENAME getTypeName() {
         return type;
     }
+
+    @Override
+    public boolean isString() {
+        if (toString().equals("STRING")) return true;
+        else return false;
+    }
 }

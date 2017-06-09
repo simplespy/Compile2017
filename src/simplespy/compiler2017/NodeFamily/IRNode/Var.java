@@ -1,6 +1,8 @@
 package simplespy.compiler2017.NodeFamily.IRNode;
 
 import simplespy.compiler2017.Asm.MemoryReference;
+import simplespy.compiler2017.Asm.Operand;
+import simplespy.compiler2017.Asm.Register;
 import simplespy.compiler2017.FrontEnd.IRVisitor;
 import simplespy.compiler2017.NodeFamily.Node;
 
@@ -30,6 +32,10 @@ public class Var extends Expr {
     public MemoryReference getMemoryReference(){
         return entity.getMemoryReference();
     }
+
+    public Operand getResult(){return result;}
+
+
     public boolean isVar(){return true;}
 
     @Override

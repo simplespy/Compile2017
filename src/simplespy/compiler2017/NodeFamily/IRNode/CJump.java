@@ -11,7 +11,7 @@ import simplespy.compiler2017.NodeFamily.Node;
  */
 public class CJump extends Stmt {
     Expr cond;
-    Label then, otherwise;
+    public Label then, otherwise;
     Location loc;
     public CJump(Location loc, Expr cond, Label then, Label otherwise){
         this.loc = loc;

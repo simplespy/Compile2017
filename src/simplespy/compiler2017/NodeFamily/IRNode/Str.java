@@ -2,6 +2,7 @@ package simplespy.compiler2017.NodeFamily.IRNode;
 
 import simplespy.compiler2017.Asm.ImmediateValue;
 import simplespy.compiler2017.Asm.MemoryReference;
+import simplespy.compiler2017.Asm.Operand;
 import simplespy.compiler2017.FrontEnd.IRVisitor;
 import simplespy.compiler2017.NodeFamily.StringLiteralNode;
 
@@ -37,5 +38,10 @@ public class Str extends Expr {
     @Override
     public boolean isString() {
         return true;
+    }
+
+    @Override
+    public Operand getResult() {
+        return result;
     }
 }

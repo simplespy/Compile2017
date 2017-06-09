@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class FuncDefNode extends ASTBranch {
     public final TypeNode returnType;
-    public final String name;
+    public String name;
     public final List<VarDecNode> parameters;
     public final BlockNode body;
     public final Location loc;

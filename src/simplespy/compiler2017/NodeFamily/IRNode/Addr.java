@@ -10,7 +10,6 @@ import simplespy.compiler2017.NodeFamily.Node;
  */
 public class Addr extends Expr {
     public Node entity;
-    public Expr spaceSize;
 
     public Addr(Node ent) {
         this.entity = ent;

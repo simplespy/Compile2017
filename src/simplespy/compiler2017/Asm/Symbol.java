@@ -7,13 +7,15 @@ public class Symbol extends Operand {
     public String name;
 
     public Symbol(String name) {
+        if (name == null){
+                name = AssemblyCode.table.symbolString(this);;
+        }
         this.name = name;
     }
 
     @Override
     public String toString() {
-        if (name == null)
-            return AssemblyCode.table.symbolString(this);;
+
 
         return name;
     }

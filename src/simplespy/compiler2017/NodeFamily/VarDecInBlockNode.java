@@ -30,6 +30,7 @@ public class VarDecInBlockNode extends StmtNode {
         return vardec;
     }
 
+
     @Override
     public String getName() {
         return vardec.getName();

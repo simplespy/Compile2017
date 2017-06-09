@@ -2,7 +2,7 @@ package simplespy.compiler2017.NodeFamily.IRNode;
 
 import simplespy.compiler2017.Asm.ImmediateValue;
 import simplespy.compiler2017.Asm.MemoryReference;
-import simplespy.compiler2017.FrontEnd.ASTVisitor;
+import simplespy.compiler2017.Asm.Operand;
 import simplespy.compiler2017.FrontEnd.IRVisitor;
 import simplespy.compiler2017.NodeFamily.Node;
 
@@ -10,6 +10,14 @@ import simplespy.compiler2017.NodeFamily.Node;
  * Created by spy on 17/4/15.
  */
 abstract public class Expr   {
+    public Operand result;
+
+    public void setResult(Operand result) {
+        this.result = result;
+    }
+
+    public Operand getResult(){return result;}
+
     abstract public void accept(IRVisitor visitor);
     public Node getEntityForce(){
         return null;

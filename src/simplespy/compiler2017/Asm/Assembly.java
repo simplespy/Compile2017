@@ -7,7 +7,10 @@ import simplespy.compiler2017.BackEnd.ASMVisitor;
  */
 abstract public class Assembly  {
     abstract public void accept(ASMVisitor visitor);
-    public void collectStatistics(Statistics stats) {
-        // does nothing by default.
+    public void collectStatistics(Statistics stats) {}
+    public String comment;
+    public void setComment(String comment) {
+        this.comment = comment;
     }
+
 }

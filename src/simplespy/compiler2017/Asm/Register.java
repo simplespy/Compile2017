@@ -1,5 +1,7 @@
 package simplespy.compiler2017.Asm;
 
+import java.util.Set;
+
 /**
  * Created by spy on 5/18/17.
  */
@@ -13,6 +15,9 @@ public class Register extends Operand {
     public Register(RegisterClass rc, AsmType type){
         this.registerClass = rc;
         this.type = type;
+    }
+    public Register(){
+        this(null);
     }
 
     public Register(RegisterClass rc){
@@ -64,6 +69,19 @@ public class Register extends Operand {
     /** size difference does NOT matter. */
     public boolean equals(Register reg) {
         return registerClass.equals(reg.registerClass);
+    }
+
+    /**
+     * Created by spy on 5/22/17.
+     */
+    public enum AsmType {
+        INT8, INT16, INT32, INT64
+    }
+
+    @Override
+    public Set<Register> getRegisters(Set<Register> registers) {
+        registers.add(this);
+        return registers;
     }
 }
 

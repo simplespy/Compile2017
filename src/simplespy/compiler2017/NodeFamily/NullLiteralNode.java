@@ -18,6 +18,12 @@ public class NullLiteralNode extends ExprNode {
     public boolean Lv() {
         return false;
     }
+
+    @Override
+    public TypeNode getType() {
+        return null;
+    }
+
     public boolean isConstant(){return true;}
 
 }
