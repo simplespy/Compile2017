@@ -22,7 +22,7 @@ import java.io.*;
 /**
  * Created by spy on 17/3/22.
  */
-public class Simpiler {
+public class MidTerm {
     public static void main(String[] argv) throws Exception {
         try {
             InputStream is = System.in;
