@@ -20,6 +20,11 @@ public class SimpleAllocator {
     }
 
     public void run(){
+        int max = 0;
+        for (Function function : ir.functionList){
+            max = Math.max(max, function.registerList.size());
+        }
+        if (max > 700) return;
         ir.run();
         ir.functionList.forEach(this::Coloring);
     }
@@ -35,6 +40,7 @@ public class SimpleAllocator {
     }
 
     class SimpleGraph{
+
         Map<Register, HashSet<Register>> interferenceChain;
         Function function;
         Map<Register, ArrayList<Register>> choices = new HashMap<>();
@@ -50,6 +56,7 @@ public class SimpleAllocator {
                 if (interferenceChain.containsKey(def)) interferenceChain.get(def).addAll(ins.out);
                 else interferenceChain.put(def, new HashSet<>(ins.out));
                 if(!choices.containsKey(def))choices.put(def, new ArrayList<>(PHI_REGS));
+
             }
         }
         public Map<Register, Operand> Allocate(){

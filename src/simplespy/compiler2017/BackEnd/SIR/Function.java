@@ -23,6 +23,7 @@ public class Function {
     public List<VarDecNode> paras = new ArrayList<>();
     public Label epilogue;
     public int parameterSavedWord;
+    public ArrayList<Register> registerList = new ArrayList<>();
 
     public Function(String name){
         VirReg.num = 0;

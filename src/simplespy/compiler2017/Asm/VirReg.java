@@ -16,6 +16,7 @@ public class VirReg extends Register {
     public VirReg(Function outer){
         id = num++;
         outer.put(this);
+        outer.registerList.add(this);
     }
     @Override
     public String toString() {

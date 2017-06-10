@@ -78,14 +78,13 @@ public class CodeBuilder implements ASMVisitor{
         StackFrame frame = new StackFrame();
         frame.lvarSize = locateLocalVars(func);
         AssemblyCode body = (compileStmts(func));
-        frame.tempSize = func.parameterSavedWord * STACK_WORD_SIZE;
         generateFunctionBody(ac, body, frame);
     }
 
     static final public int STACK_WORD_SIZE = 8;
     private int locateLocalVars(Function func){
         int len = 0;
-
+        if (flag == 1) len = CALLEE_SAVED_REG.length * STACK_WORD_SIZE;
         for (Register  virReg : func.registerMap.keySet()){
             if (func.registerMap.get(virReg) == null){
                 len = AsmUtils.align(len + STACK_WORD_SIZE, STACK_WORD_SIZE);
@@ -109,16 +108,16 @@ public class CodeBuilder implements ASMVisitor{
     }
 
     private void prologue(AssemblyCode file, int frameSize){
-        if (flag == 1) save_Callee(file);
         file.push(bp);
         file.mov(sp, bp);
+        if (flag == 1) save_Callee(file);
         if (frameSize > 0) file.sub(new ImmediateValue(frameSize), sp);
     }
 
     private void epilogue(AssemblyCode file){
+        if (flag == 1) pop_Callee(file);
         file.mov(bp,sp);
         file.pop(bp);
-        if (flag == 1) pop_Callee(file);
         file.ret();
     }
 
@@ -239,7 +238,12 @@ public class CodeBuilder implements ASMVisitor{
 
     @Override
     public void visit(CallFunc ins) {
+        int parasavedSize;
+        if (ins.paras.size() <= 6) parasavedSize = 0;
+        else if ((ins.paras.size() - 6) % 2 == 1) parasavedSize = ins.paras.size() - 5;
+        else parasavedSize = ins.paras.size() - 6;
 
+        if (parasavedSize > 0) acfunc.sub(new ImmediateValue(parasavedSize * STACK_WORD_SIZE), sp);
         int i = 0;
         int offset = 0;
         for (Operand arg: ins.paras){
@@ -262,6 +266,8 @@ public class CodeBuilder implements ASMVisitor{
         acfunc.call((Symbol) ins.operands[0]);
        // if (ins.operands.length == 2) acfunc.mov(ax, transfer(ins.operands[1]));
         curfunc.parameterSavedWord = Math.max(curfunc.parameterSavedWord, offset + 2);
+        if (parasavedSize > 0) acfunc.add(new ImmediateValue(parasavedSize * STACK_WORD_SIZE), sp);
+
         pop_Caller();
     }
 

@@ -80,7 +80,7 @@ public class SingleTest {
             SimpleAllocator simpleAllocator = new SimpleAllocator(sir);
             simpleAllocator.run();
 
-            sir.PrintInOut();
+          //  sir.PrintInOut();
 
             CodeBuilder codeBuilder = new CodeBuilder(sir);
             codeBuilder.build();
