@@ -83,7 +83,10 @@ public class CodeBuilder implements ASMVisitor{
 
     static final public int STACK_WORD_SIZE = 8;
     private int locateLocalVars(Function func){
+        curfunc = func;
+        compute();
         int len = 0;
+        if (flag == 1) len = curfunc.callee * STACK_WORD_SIZE;
 
         for (Register  virReg : func.registerMap.keySet()){
             if (func.registerMap.get(virReg) == null){
@@ -91,7 +94,6 @@ public class CodeBuilder implements ASMVisitor{
                 func.registerMap.replace(virReg, new IndirectMemoryReference(-len, bp));
             }
         }
-        curfunc = func;
         return len;
     }
     private AssemblyCode compileStmts(Function func){
@@ -150,8 +152,16 @@ public class CodeBuilder implements ASMVisitor{
 
     @Override
     public void visit(Binary ins) {
-        Operand left = transfer(ins.operands[1]);
-        Operand right = transfer(ins.operands[0]);
+        Operand left ;
+        Operand right;
+
+        if (ins.binaryOp == BinaryOpNode.BinaryOp.SHL || ins.binaryOp == BinaryOpNode.BinaryOp.SHR){
+             left = transfer2(ins.operands[1]);
+             right = transfer2(ins.operands[0]);
+        }else{
+            left = transfer(ins.operands[1]);
+            right = transfer(ins.operands[0]);
+        }
 
         switch (ins.binaryOp) {
             case ADD:
@@ -334,7 +344,15 @@ public class CodeBuilder implements ASMVisitor{
             return new MemoryReference(cx);
         }
         return key;
+    }
 
+    Operand transfer2(Operand key){
+        if (curfunc.registerMap.containsKey(key)) return curfunc.registerMap.get(key);
+        while (key instanceof MemoryReference && curfunc.registerMap.containsKey(((MemoryReference)key).addr)){
+            acfunc.mov(curfunc.registerMap.get(((MemoryReference)key).addr), dx);
+            return new MemoryReference(dx);
+        }
+        return key;
     }
     private void save_Caller(){
         for (Register reg : CALLER_SAVED_REG){
@@ -357,7 +375,6 @@ public class CodeBuilder implements ASMVisitor{
     private void save_Callee(AssemblyCode file){
         for (Register reg : CALLEE_SAVED_REG){
             if (curfunc.usedReg.contains(reg)) {
-                ++curfunc.callee;
                 file.push(reg);
             }
         }
@@ -373,6 +390,37 @@ public class CodeBuilder implements ASMVisitor{
         }
     }
 
+
+    private void compute(){
+        for (Register reg : CALLEE_SAVED_REG){
+            if (curfunc.usedReg.contains(reg)) {
+                ++curfunc.callee;
+            }
+        }
+    }
+ /* private void save_Caller(){
+      for (Register reg : CALLER_SAVED_REG){
+          acfunc.push(reg);
+      }
+  }
+    private void pop_Caller(){
+        for (int i = CALLER_SAVED_REG.length-1; i >= 0; --i){
+            acfunc.pop(CALLER_SAVED_REG[i]);
+        }
+    }
+    private void save_Callee(AssemblyCode file){
+        for (Register reg : CALLEE_SAVED_REG){
+            file.push(reg);
+        }
+        file.sub(new ImmediateValue(8), sp);
+    }
+    private void pop_Callee(AssemblyCode file){
+        file.add(new ImmediateValue(8), sp);
+
+        for (int i = CALLEE_SAVED_REG.length-1; i >= 0; --i){
+            file.pop(CALLEE_SAVED_REG[i]);
+        }
+    }*/
 
 
     private Register ax = Register.ax;
