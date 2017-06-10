@@ -347,7 +347,7 @@ public class CodeBuilder implements ASMVisitor{
 
     }
     private void pop_Caller(){
-        if (curfunc.caller % 2 == 1)  acfunc.sub(new ImmediateValue(8), sp);
+        if (curfunc.caller % 2 == 1)  acfunc.add(new ImmediateValue(8), sp);
         for (int i = CALLER_SAVED_REG.length-1; i >= 0; --i){
             if (curfunc.usedReg.contains(CALLER_SAVED_REG[i]))
                 acfunc.pop(CALLER_SAVED_REG[i]);
