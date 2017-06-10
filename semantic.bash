@@ -5,5 +5,5 @@
 
 set -e
 cd "$(dirname "$0")"
-export CCHK="java -classpath ./lib/antlr-4.6-complete.jar:./bin simplespy.compiler2017.Simpiler"
+export CCHK="java -classpath ./lib/antlr-4.6-complete.jar:./bin simplespy.compiler2017.MidTerm"
 $CCHK
