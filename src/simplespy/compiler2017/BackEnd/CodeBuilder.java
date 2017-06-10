@@ -84,7 +84,7 @@ public class CodeBuilder implements ASMVisitor{
     static final public int STACK_WORD_SIZE = 8;
     private int locateLocalVars(Function func){
         int len = 0;
-        if (flag == 1) len = CALLEE_SAVED_REG.length * STACK_WORD_SIZE;
+
         for (Register  virReg : func.registerMap.keySet()){
             if (func.registerMap.get(virReg) == null){
                 len = AsmUtils.align(len + STACK_WORD_SIZE, STACK_WORD_SIZE);
@@ -104,7 +104,7 @@ public class CodeBuilder implements ASMVisitor{
         prologue(file, frame.frameSize());
         boolean printornot = (frame.frameSize() % 16 == 0);
         file.addAll(body.getAssemblies(), printornot);
-        epilogue(file);
+        epilogue(file, frame.frameSize());
     }
 
     private void prologue(AssemblyCode file, int frameSize){
@@ -114,7 +114,8 @@ public class CodeBuilder implements ASMVisitor{
         if (frameSize > 0) file.sub(new ImmediateValue(frameSize), sp);
     }
 
-    private void epilogue(AssemblyCode file){
+    private void epilogue(AssemblyCode file, int frameSize){
+        if (frameSize > 0) file.add(new ImmediateValue(frameSize), sp);
         if (flag == 1) pop_Callee(file);
         file.mov(bp,sp);
         file.pop(bp);
@@ -189,8 +190,8 @@ public class CodeBuilder implements ASMVisitor{
                 acfunc.and(right, left);break;
             case BITWISE_OR:
                 if(left.isMem() && right.isMem()){
-                acfunc.mov(right, ax);
-                right = ax;
+                    acfunc.mov(right, ax);
+                    right = ax;
                 }
                 acfunc.or(right, left);break;
             case XOR:
@@ -244,6 +245,7 @@ public class CodeBuilder implements ASMVisitor{
         else parasavedSize = ins.paras.size() - 6;
 
         if (parasavedSize > 0) acfunc.sub(new ImmediateValue(parasavedSize * STACK_WORD_SIZE), sp);
+
         int i = 0;
         int offset = 0;
         for (Operand arg: ins.paras){
@@ -264,7 +266,7 @@ public class CodeBuilder implements ASMVisitor{
 
         }
         acfunc.call((Symbol) ins.operands[0]);
-       // if (ins.operands.length == 2) acfunc.mov(ax, transfer(ins.operands[1]));
+        // if (ins.operands.length == 2) acfunc.mov(ax, transfer(ins.operands[1]));
         curfunc.parameterSavedWord = Math.max(curfunc.parameterSavedWord, offset + 2);
         if (parasavedSize > 0) acfunc.add(new ImmediateValue(parasavedSize * STACK_WORD_SIZE), sp);
 
@@ -348,9 +350,11 @@ public class CodeBuilder implements ASMVisitor{
         for (Register reg : CALLEE_SAVED_REG){
             file.push(reg);
         }
-        acfunc.sub(new ImmediateValue(8), sp);
+        file.sub(new ImmediateValue(8), sp);
     }
     private void pop_Callee(AssemblyCode file){
+        file.add(new ImmediateValue(8), sp);
+
         for (int i = CALLEE_SAVED_REG.length-1; i >= 0; --i){
             file.pop(CALLEE_SAVED_REG[i]);
         }

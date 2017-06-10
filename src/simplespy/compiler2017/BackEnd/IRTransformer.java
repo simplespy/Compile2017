@@ -190,6 +190,8 @@ public class IRTransformer implements IRVisitor {
         curfunc.call(func, paras, result);
 
         if (result != null) curfunc.mov(ax, result);
+        //curfunc.pop_caller();
+
 
     }
 
