@@ -106,9 +106,9 @@ public class SIR {
                 if (ins instanceof Branch){
                     ins.next.add(next);
                     ins.next.add(x.labelInstructionMap.get(((Branch) ins).otherwise));
-                }/*else if (ins instanceof Jmp){
+                }else if (ins instanceof Jmp){
                     ins.next.add(x.labelInstructionMap.get(((Jmp) ins).label));
-                }*/
+                }
                 else ins.next.add(next);
             }
         });
@@ -128,11 +128,11 @@ public class SIR {
                     newin.addAll(ins.out);newin.removeAll(ins.def);newin.addAll(ins.use);//in[n] = use[n]+(out[n]-def[n])
 
                     for (Instruction succ : ins.next) {
-                        while (succ instanceof Jmp) succ = func.labelInstructionMap.get(((Jmp) succ).label);
+                        /*while (succ instanceof Jmp) succ = func.labelInstructionMap.get(((Jmp) succ).label);
                         while (succ instanceof Labelline){
                             if (succ.equals(func.labelInstructionMap.get(func.epilogue))) break;
                             succ = succ.next.get(0);
-                        }
+                        }*/
                         newout.addAll(succ.in);
                     }
 
