@@ -52,11 +52,11 @@ public class Function {
     public void put(VirReg virReg){
         registerMap.put(virReg, null);
     }
-    public void put(VirReg virReg, PhiReg phiReg){
-        registerMap.put(virReg, phiReg);
+    public void put(Register virReg, Operand phiReg){
+        registerMap.replace(virReg, phiReg);
     }
-    public void put(VirReg virReg, IndirectMemoryReference address){
-        registerMap.put(virReg, address);
+    public void put(Register virReg, IndirectMemoryReference address){
+        registerMap.replace(virReg, address);
     }
     public void comment(String comment){ instructions.get(instructions.size()-1).setComment(comment);}
     public void save_caller(){instructions.add(new Instruction("save_caller"));}

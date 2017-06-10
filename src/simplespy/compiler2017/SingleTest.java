@@ -80,6 +80,8 @@ public class SingleTest {
             SimpleAllocator simpleAllocator = new SimpleAllocator(sir);
             simpleAllocator.run();
 
+            sir.PrintInOut();
+
             CodeBuilder codeBuilder = new CodeBuilder(sir);
             codeBuilder.build();
             AssemblyCode ac = codeBuilder.getAC();
@@ -88,7 +90,10 @@ public class SingleTest {
             BufferedReader br = new BufferedReader(new FileReader("lib/builtin_functions.asm"));
             String line;
             while ((line = br.readLine()) != null) os.println(line);
-      //  } catch (Exception e) {
+
+            sir.PrintAllocateResult();
+
+            //  } catch (Exception e) {
         //    System.exit(1);
        // }
     }

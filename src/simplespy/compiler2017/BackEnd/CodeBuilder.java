@@ -275,6 +275,7 @@ public class CodeBuilder implements ASMVisitor{
     public void visit(Move ins) {
         Operand src = transfer(ins.operands[0]);
         Operand dest = transfer(ins.operands[1]);
+        if (src.equals(dest)) return;
         if (src.isMem() && dest.isMem()){
             acfunc.mov(src, ax);
             acfunc.mov(ax, dest);

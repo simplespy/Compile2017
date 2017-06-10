@@ -29,10 +29,9 @@ public class SimpleAllocator {
         SimpleGraph simpleGraph = new SimpleGraph(func);
         simpleGraph.build();
         Map<Register, Operand> colorMap = simpleGraph.Allocate();
-        /*for (Register reg : colorMap.keySet()){
-            System.out.println(reg.toString() + " ~ " + colorMap.get(reg).toString());
-        }*/
-        func.registerMap = colorMap;
+        for (Register register : colorMap.keySet()){
+            func.put(register, colorMap.get(register));
+        }
     }
 
     class SimpleGraph{
@@ -50,7 +49,7 @@ public class SimpleAllocator {
                 Register def = ins.def.get(0);
                 if (interferenceChain.containsKey(def)) interferenceChain.get(def).addAll(ins.out);
                 else interferenceChain.put(def, new HashSet<>(ins.out));
-                choices.put(def, new ArrayList<>(PHI_REGS));
+                if(!choices.containsKey(def))choices.put(def, new ArrayList<>(PHI_REGS));
             }
         }
         public Map<Register, Operand> Allocate(){
@@ -73,8 +72,10 @@ public class SimpleAllocator {
                 for(Register neighbor : neighbors){
                     colors.remove(colorMap.get(neighbor));
                     colors.remove(neighbor);
+                    if (interferenceChain.containsKey(neighbor))interferenceChain.get(neighbor).add(reg);
                 }
                 colorMap.put(reg, colors.isEmpty() ? null : colors.get(0));
+
             }
 
 
@@ -96,6 +97,7 @@ public class SimpleAllocator {
     private Register r13 = Register.r13;
     private Register r14 = Register.r14;
     private Register r15 = Register.r15;
-    public List<Register> PHI_REGS = new ArrayList<Register>(){{add(bx);add(di);add(si);add(r8);add(r9);add(r10);add(r11);add(r12);add(r13);add(r14);add(r15);}};
+    public List<Register> PHI_REGS = new ArrayList<Register>(){{
+        add(r10);add(r11);add(r12);add(r13);add(r14);add(r15);add(bx);add(di);add(si);add(r8);add(r9);}};
 
 }

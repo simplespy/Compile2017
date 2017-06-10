@@ -148,7 +148,15 @@ public class SIR {
     public void run(){
         createGraph();
         AnalyzeLiveness();
-      //  PrintInOut();
+    }
+
+    public void PrintAllocateResult(){
+        for (Function func : functionList){
+             for (Register reg : func.registerMap.keySet()){
+                System.out.println(reg.toString() + " ~ " + func.registerMap.get(reg).toString());
+         }
+        }
+
     }
 
 }
