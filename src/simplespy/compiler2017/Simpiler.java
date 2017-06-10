@@ -82,6 +82,9 @@ public class Simpiler {
             ir.accept(irTransformer);
             SIR sir = irTransformer.getSir();
 
+            SimpleAllocator simpleAllocator = new SimpleAllocator(sir);
+            simpleAllocator.run();
+
             CodeBuilder codeBuilder = new CodeBuilder(sir);
             codeBuilder.build();
             AssemblyCode ac = codeBuilder.getAC();

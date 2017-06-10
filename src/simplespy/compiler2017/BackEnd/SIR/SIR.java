@@ -148,7 +148,7 @@ public class SIR {
     public void run(){
         createGraph();
         AnalyzeLiveness();
-        PrintInOut();
+      //  PrintInOut();
     }
 
 }

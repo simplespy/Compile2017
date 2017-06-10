@@ -77,8 +77,9 @@ public class Test {
                 IRTransformer irTransformer = new IRTransformer();
                 ir.accept(irTransformer);
                 SIR sir = irTransformer.getSir();
-                sir.createGraph();
-                sir.AnalyzeLiveness();
+
+                SimpleAllocator simpleAllocator = new SimpleAllocator(sir);
+                simpleAllocator.run();
 
                 CodeBuilder codeBuilder = new CodeBuilder(sir);
                 codeBuilder.build();
