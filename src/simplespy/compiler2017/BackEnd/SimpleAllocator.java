@@ -24,7 +24,7 @@ public class SimpleAllocator {
         for (Function function : ir.functionList){
             max = Math.max(max, function.registerList.size());
         }
-        if (max > 700) return;
+        if (max > 800) return;
         ir.run();
         ir.functionList.forEach(this::Coloring);
     }
