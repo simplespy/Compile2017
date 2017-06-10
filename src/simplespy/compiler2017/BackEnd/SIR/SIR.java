@@ -157,6 +157,7 @@ public class SIR {
              for (Register reg : func.registerMap.keySet()){
                 System.out.println(reg.toString() + " ~ " + func.registerMap.get(reg).toString());
          }
+
         }
 
     }

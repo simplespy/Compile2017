@@ -7,10 +7,7 @@ import simplespy.compiler2017.NodeFamily.BinaryOpNode;
 import simplespy.compiler2017.NodeFamily.UnaryOpNode;
 import simplespy.compiler2017.NodeFamily.VarDecNode;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by spy on 17/6/7.
@@ -24,6 +21,10 @@ public class Function {
     public Label epilogue;
     public int parameterSavedWord;
     public ArrayList<Register> registerList = new ArrayList<>();
+    public HashSet<Register> usedReg = new HashSet<>();
+    public int caller = 0;
+    public int callee = 0;
+
 
     public Function(String name){
         VirReg.num = 0;

@@ -338,25 +338,38 @@ public class CodeBuilder implements ASMVisitor{
     }
     private void save_Caller(){
         for (Register reg : CALLER_SAVED_REG){
-            acfunc.push(reg);
+            if (curfunc.usedReg.contains(reg)) {
+                acfunc.push(reg);
+                ++curfunc.caller;
+            }
         }
+        if (curfunc.caller % 2 == 1)  acfunc.sub(new ImmediateValue(8), sp);
+
     }
     private void pop_Caller(){
+        if (curfunc.caller % 2 == 1)  acfunc.sub(new ImmediateValue(8), sp);
         for (int i = CALLER_SAVED_REG.length-1; i >= 0; --i){
-            acfunc.pop(CALLER_SAVED_REG[i]);
+            if (curfunc.usedReg.contains(CALLER_SAVED_REG[i]))
+                acfunc.pop(CALLER_SAVED_REG[i]);
         }
     }
+
     private void save_Callee(AssemblyCode file){
         for (Register reg : CALLEE_SAVED_REG){
-            file.push(reg);
+            if (curfunc.usedReg.contains(reg)) {
+                ++curfunc.callee;
+                file.push(reg);
+            }
         }
-        file.sub(new ImmediateValue(8), sp);
+        if (curfunc.callee % 2 == 1) file.sub(new ImmediateValue(8), sp);
     }
     private void pop_Callee(AssemblyCode file){
-        file.add(new ImmediateValue(8), sp);
+        if (curfunc.callee % 2 == 1) file.add(new ImmediateValue(8), sp);
 
         for (int i = CALLEE_SAVED_REG.length-1; i >= 0; --i){
-            file.pop(CALLEE_SAVED_REG[i]);
+            if (curfunc.usedReg.contains(CALLEE_SAVED_REG[i]))
+
+                file.pop(CALLEE_SAVED_REG[i]);
         }
     }
 

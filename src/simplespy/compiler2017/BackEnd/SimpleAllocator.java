@@ -82,8 +82,10 @@ public class SimpleAllocator {
                     if (interferenceChain.containsKey(neighbor))interferenceChain.get(neighbor).add(reg);
                 }
                 colorMap.put(reg, colors.isEmpty() ? null : colors.get(0));
+                if (!colors.isEmpty())function.usedReg.add(colors.get(0));
 
             }
+
 
 
             return colorMap;
@@ -91,7 +93,6 @@ public class SimpleAllocator {
 
 
     }
-
 
     private Register bx = Register.bx;
     private Register di = Register.di;
