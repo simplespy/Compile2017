@@ -204,7 +204,10 @@ public class IRPrinter implements IRVisitor {
     @Override
     public void visit(Mem node) {
         out.println(indent.toString() + "<<" + node.getClass().getSimpleName() + ">>" );
-
+        out.println(indent.toString() + "Expr:" );
+        inc();
+        visit(node.expr);
+        dec();
 
     }
 

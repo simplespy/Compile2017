@@ -44,7 +44,6 @@ public class CodeBuilder implements ASMVisitor{
         gvars.stream().forEachOrdered(x->{file.label(x.getAddress().name);file.define(new ImmediateValue(0));});
 
         stringPool.keySet().stream().forEachOrdered(name -> {
-            Symbol symbol = new Symbol('`'+name+'`');
             file.define(new ImmediateValue(name.length()));
             file.label(stringPool.get(name).getAddress().name);
             for (int i = 0; i < name.length(); ++i){
@@ -135,6 +134,9 @@ public class CodeBuilder implements ASMVisitor{
 
     @Override
     public void visit(Instruction asm) {
+
+
+
         if (asm.op.equals("save_caller")) save_Caller();
         else {
             asm.accept(this);
@@ -145,26 +147,30 @@ public class CodeBuilder implements ASMVisitor{
     }
 
     @Override
-    public void visit(Label asm) {}
+    public void visit(Label asm) {
+
+    }
 
     @Override
     public void visit(Align asm) {}
 
     @Override
     public void visit(Binary ins) {
-        Operand left ;
-        Operand right;
-
-        if (ins.binaryOp == BinaryOpNode.BinaryOp.SHL || ins.binaryOp == BinaryOpNode.BinaryOp.SHR){
-             left = transfer2(ins.operands[1]);
-             right = transfer2(ins.operands[0]);
-        }else{
-            left = transfer(ins.operands[1]);
-            right = transfer(ins.operands[0]);
-        }
+        Operand left = transfer(ins.operands[1]);
+        Operand right = transfer(ins.operands[0]);
 
         switch (ins.binaryOp) {
             case ADD:
+                if (right instanceof ImmediateValue && ((ImmediateValue) right).value == 1){
+                    acfunc.inc(left);
+                    break;
+                }
+                else if (right instanceof ImmediateValue && ((ImmediateValue) right).value == -1){
+                    acfunc.dec(left);
+                    break;
+                }else if (right instanceof  ImmediateValue && ((ImmediateValue) right).value == 0){
+                    break;
+                }
                 if(left.isMem() && right.isMem()){
                     acfunc.mov(right, ax);
                     right = ax;
@@ -172,6 +178,15 @@ public class CodeBuilder implements ASMVisitor{
                 acfunc.add(right, left);
                 break;
             case SUB:
+                if (right instanceof ImmediateValue && ((ImmediateValue) right).value == 1){
+                    acfunc.dec(left);
+                    break;
+                }else if (right instanceof ImmediateValue && ((ImmediateValue) right).value == -1){
+                    acfunc.inc(left);
+                    break;
+                }else if (right instanceof  ImmediateValue && ((ImmediateValue) right).value == 0){
+                    break;
+                }
                 if(left.isMem() && right.isMem()){
                     acfunc.mov(right, ax);
                     right = ax;
@@ -179,6 +194,12 @@ public class CodeBuilder implements ASMVisitor{
                 acfunc.sub(right, left);
                 break;
             case MUL:
+                if (right instanceof  ImmediateValue && ((ImmediateValue) right).value == 0){
+                    acfunc.mov(new ImmediateValue(0), left);
+                    break;
+                }else if (right instanceof ImmediateValue && ((ImmediateValue) right).value == 1){
+                    break;
+                }
                 acfunc.mov(left, ax);
                 acfunc.mul(right, ax);
                 acfunc.mov(ax, left);
@@ -268,15 +289,10 @@ public class CodeBuilder implements ASMVisitor{
                 else acfunc.mov(realArg, new IndirectMemoryReference(offset*STACK_WORD_SIZE, sp));
                 ++offset;
             }
-            else {
-                //acfunc.mov(transfer(arg), PARAS_REG[i]);
-                ++i;
-
-            }
+            else {++i;}
 
         }
         acfunc.call((Symbol) ins.operands[0]);
-        // if (ins.operands.length == 2) acfunc.mov(ax, transfer(ins.operands[1]));
         curfunc.parameterSavedWord = Math.max(curfunc.parameterSavedWord, offset + 2);
         if (parasavedSize > 0) acfunc.add(new ImmediateValue(parasavedSize * STACK_WORD_SIZE), sp);
 
@@ -287,13 +303,18 @@ public class CodeBuilder implements ASMVisitor{
     public void visit(Jmp ins) {acfunc.jmp(ins.label);}
 
     @Override
-    public void visit(Labelline ins) { acfunc.label(ins.label);}
+    public void visit(Labelline ins) {
+        acfunc.label(ins.label);
+    }
 
     @Override
     public void visit(Move ins) {
         Operand src = transfer(ins.operands[0]);
         Operand dest = transfer(ins.operands[1]);
         if (src.equals(dest)) return;
+        if (src instanceof ImmediateValue && ((ImmediateValue) src).value == 0 && dest instanceof Register) {
+            acfunc.xor(dest, dest);
+        }
         if (src.isMem() && dest.isMem()){
             acfunc.mov(src, ax);
             acfunc.mov(ax, dest);
@@ -331,8 +352,6 @@ public class CodeBuilder implements ASMVisitor{
         public int saveRegsSize(){
             return saveRegs.size() * STACK_WORD_SIZE;
         }
-        public int lvarOffset(){return saveRegsSize();}
-        public int tempOffset(){return saveRegsSize() + lvarSize;}
         public int frameSize(){return saveRegsSize() + lvarSize + tempSize;}
 
     }
@@ -346,14 +365,7 @@ public class CodeBuilder implements ASMVisitor{
         return key;
     }
 
-    Operand transfer2(Operand key){
-        if (curfunc.registerMap.containsKey(key)) return curfunc.registerMap.get(key);
-        while (key instanceof MemoryReference && curfunc.registerMap.containsKey(((MemoryReference)key).addr)){
-            acfunc.mov(curfunc.registerMap.get(((MemoryReference)key).addr), dx);
-            return new MemoryReference(dx);
-        }
-        return key;
-    }
+
     private void save_Caller(){
         for (Register reg : CALLER_SAVED_REG){
             if (curfunc.usedReg.contains(reg)) {
@@ -398,29 +410,6 @@ public class CodeBuilder implements ASMVisitor{
             }
         }
     }
- /* private void save_Caller(){
-      for (Register reg : CALLER_SAVED_REG){
-          acfunc.push(reg);
-      }
-  }
-    private void pop_Caller(){
-        for (int i = CALLER_SAVED_REG.length-1; i >= 0; --i){
-            acfunc.pop(CALLER_SAVED_REG[i]);
-        }
-    }
-    private void save_Callee(AssemblyCode file){
-        for (Register reg : CALLEE_SAVED_REG){
-            file.push(reg);
-        }
-        file.sub(new ImmediateValue(8), sp);
-    }
-    private void pop_Callee(AssemblyCode file){
-        file.add(new ImmediateValue(8), sp);
-
-        for (int i = CALLEE_SAVED_REG.length-1; i >= 0; --i){
-            file.pop(CALLEE_SAVED_REG[i]);
-        }
-    }*/
 
 
     private Register ax = Register.ax;
