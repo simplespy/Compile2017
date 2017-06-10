@@ -62,9 +62,8 @@ public class Function {
     }
     public void comment(String comment){ instructions.get(instructions.size()-1).setComment(comment);}
     public void save_caller(){instructions.add(new Instruction("save_caller"));}
-    public Instruction getLastIns() {
-        return instructions.get(instructions.size()-1);
-    }
+    public void pop_caller(){instructions.add(new Instruction("pop_caller"));}
+
 
 
 }

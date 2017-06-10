@@ -1,8 +1,10 @@
 package simplespy.compiler2017.BackEnd.SIR;
 
 import simplespy.compiler2017.Asm.*;
+import simplespy.compiler2017.BackEnd.Coloring;
 import simplespy.compiler2017.FrontEnd.GlobalScope;
 import simplespy.compiler2017.FrontEnd.TypeTable;
+import simplespy.compiler2017.NodeFamily.FuncDefNode;
 import simplespy.compiler2017.NodeFamily.VarDecNode;
 
 import java.util.*;
@@ -14,6 +16,7 @@ public class SIR {
     public List<Function> functionList = new ArrayList<>();
     public List<VarDecNode> vars = new LinkedList<>();//global variables
     public GlobalScope scope;
+    public Map<String, FuncDefNode> funcs = new LinkedHashMap<>();//global functions
     public TypeTable typeTable;//class
 
     public void Print(){
@@ -29,6 +32,25 @@ public class SIR {
                     );
         });
     }
+
+    public void PrintNext(){
+        functionList.stream().forEachOrdered(x->{
+            System.out.println(x.name+':');
+            x.instructions.stream().forEachOrdered(y->{
+                System.out.print(Integer.toString(x.instructions.indexOf(y))+'\t');
+                if (y instanceof Labelline) System.out.print(y.toString()+':');
+                else System.out.print('\t'+y.toString());
+                System.out.print("\tnext:");
+                for (Instruction succ : y.next) {
+                    while (succ instanceof Jmp) succ = x.labelInstructionMap.get(((Jmp) succ).label);
+                    while (succ instanceof Labelline) succ = succ.next.get(0);
+                    System.out.print(Integer.toString(x.instructions.indexOf(succ))+' ');
+                }System.out.println();
+
+            });
+        });
+    }
+
     public void PrintInOut(){
         functionList.stream().forEachOrdered(x->{
             System.out.println(x.name+':');
@@ -106,6 +128,11 @@ public class SIR {
                     newin.addAll(ins.out);newin.removeAll(ins.def);newin.addAll(ins.use);//in[n] = use[n]+(out[n]-def[n])
 
                     for (Instruction succ : ins.next) {
+                        /*while (succ instanceof Jmp) succ = func.labelInstructionMap.get(((Jmp) succ).label);
+                        while (succ instanceof Labelline){
+                            if (succ.equals(func.labelInstructionMap.get(func.epilogue))) break;
+                            succ = succ.next.get(0);
+                        }*/
                         newout.addAll(succ.in);
                     }
 
@@ -114,7 +141,8 @@ public class SIR {
                     if (!newout.equals(ins.out)) done = false;
                     ins.out = newout;
                 }
-
+              //  System.out.println("--------------- "+Integer.toString(++rnd[0])+"Rounds -------------------");
+                //PrintInOut();
             }while(!done);
         });
 

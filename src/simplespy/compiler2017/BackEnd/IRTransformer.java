@@ -190,6 +190,7 @@ public class IRTransformer implements IRVisitor {
         curfunc.call(func, paras, result);
 
         if (result != null) curfunc.mov(ax, result);
+        //curfunc.pop_caller();
 
 
     }
@@ -256,11 +257,7 @@ public class IRTransformer implements IRVisitor {
     public void visit(Jump node) { curfunc.jmp(node.getLabel());}
 
     @Override
-    public void visit(LabelStmt node) {
-        if (curfunc.getLastIns() instanceof Jmp && ((Jmp) curfunc.getLastIns()).label.equals(node.label)){
-            curfunc.instructions.remove(curfunc.getLastIns());
-        }
-        curfunc.label(node.label);}
+    public void visit(LabelStmt node) { curfunc.label(node.label);}
 
     @Override
     public void visit(Return node) {
@@ -341,6 +338,8 @@ public class IRTransformer implements IRVisitor {
     public void visit(Mem node) {
         visit(node.expr);
         node.setResult(new MemoryReference(node.expr.getResult()));
+
+
     }
 
     @Override

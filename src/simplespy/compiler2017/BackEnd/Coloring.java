@@ -1,9 +1,11 @@
 package simplespy.compiler2017.BackEnd;
 
 import simplespy.compiler2017.Asm.Instruction;
+import simplespy.compiler2017.Asm.PhiReg;
 import simplespy.compiler2017.Asm.Register;
 import simplespy.compiler2017.BackEnd.SIR.Function;
 import simplespy.compiler2017.BackEnd.SIR.Move;
+import simplespy.compiler2017.BackEnd.SIR.SIR;
 
 import java.io.PrintStream;
 
