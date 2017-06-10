@@ -69,9 +69,11 @@ public class CodeBuilder implements ASMVisitor{
         ir.functionList.forEach(this::buildFunction);
 
     }
-
+    int flag = 1;
     public void buildFunction(Function func){
         ac.label(func.name);
+        if (func.name.equals("main")) flag = 0;
+        else flag = 1;
         rsp = 0;
         StackFrame frame = new StackFrame();
         frame.lvarSize = locateLocalVars(func);
@@ -84,7 +86,7 @@ public class CodeBuilder implements ASMVisitor{
     private int locateLocalVars(Function func){
         int len = 0;
 
-        for (VirReg  virReg : func.registerMap.keySet()){
+        for (Register  virReg : func.registerMap.keySet()){
             if (func.registerMap.get(virReg) == null){
                 len = AsmUtils.align(len + STACK_WORD_SIZE, STACK_WORD_SIZE);
                 func.registerMap.replace(virReg, new IndirectMemoryReference(-len, bp));
@@ -100,22 +102,23 @@ public class CodeBuilder implements ASMVisitor{
     }
 
     private void generateFunctionBody(AssemblyCode file, AssemblyCode body, StackFrame frame){
-        prologue(file, frame.saveRegs, frame.frameSize());
+        prologue(file, frame.frameSize());
         boolean printornot = (frame.frameSize() % 16 == 0);
         file.addAll(body.getAssemblies(), printornot);
-        epilogue(file, frame.saveRegs);
+        epilogue(file);
     }
 
-    private void prologue(AssemblyCode file, List<Register> saveRegs, int frameSize){
-
+    private void prologue(AssemblyCode file, int frameSize){
+        if (flag == 1) save_Callee(file);
         file.push(bp);
         file.mov(sp, bp);
         if (frameSize > 0) file.sub(new ImmediateValue(frameSize), sp);
     }
 
-    private void epilogue(AssemblyCode file, List<Register> saveRegs){
+    private void epilogue(AssemblyCode file){
         file.mov(bp,sp);
         file.pop(bp);
+        if (flag == 1) pop_Callee(file);
         file.ret();
     }
 
@@ -130,10 +133,13 @@ public class CodeBuilder implements ASMVisitor{
 
     @Override
     public void visit(Instruction asm) {
-       asm.accept(this);
-       if(asm.comment != null){
-           acfunc.comment(asm.comment);
-       }
+        if (asm.op.equals("save_caller")) save_Caller();
+        else {
+            asm.accept(this);
+            if(asm.comment != null){
+                acfunc.comment(asm.comment);
+            }
+        }
     }
 
     @Override
@@ -256,6 +262,7 @@ public class CodeBuilder implements ASMVisitor{
         acfunc.call((Symbol) ins.operands[0]);
        // if (ins.operands.length == 2) acfunc.mov(ax, transfer(ins.operands[1]));
         curfunc.parameterSavedWord = Math.max(curfunc.parameterSavedWord, offset + 2);
+        pop_Caller();
     }
 
     @Override
@@ -320,19 +327,51 @@ public class CodeBuilder implements ASMVisitor{
         return key;
 
     }
+    private void save_Caller(){
+        for (Register reg : CALLER_SAVED_REG){
+            acfunc.push(reg);
+        }
+    }
+    private void pop_Caller(){
+        for (int i = CALLER_SAVED_REG.length-1; i >= 0; --i){
+            acfunc.pop(CALLER_SAVED_REG[i]);
+        }
+    }
+    private void save_Callee(AssemblyCode file){
+        for (Register reg : CALLEE_SAVED_REG){
+            file.push(reg);
+        }
+        acfunc.sub(new ImmediateValue(8), sp);
+    }
+    private void pop_Callee(AssemblyCode file){
+        for (int i = CALLEE_SAVED_REG.length-1; i >= 0; --i){
+            file.pop(CALLEE_SAVED_REG[i]);
+        }
+    }
 
 
-    private Register bp = new Register(Register.RegisterClass.BP);
-    private Register ax = new Register(Register.RegisterClass.AX);
-    private Register dx = new Register(Register.RegisterClass.DX);
-    private Register cx = new Register(Register.RegisterClass.CX);
-    private Register cl = new Register(Register.RegisterClass.CL);
+
+    private Register ax = Register.ax;
+    private Register bx = Register.bx;
+    private Register cx = Register.cx;
+    private Register dx = Register.dx;
+    private Register di = Register.di;
+    private Register si = Register.si;
+    private Register r8 = Register.r8;
+    private Register r9 = Register.r9;
+    private Register r10 = Register.r10;
+    private Register r11 = Register.r11;
+    private Register r12 = Register.r12;
+    private Register r13 = Register.r13;
+    private Register r14 = Register.r14;
+    private Register r15 = Register.r15;
+
+    private Register bp = Register.bp;
+    private Register sp = Register.sp;
     private Register al = new Register(Register.RegisterClass.AL);
-    private Register sp = new Register(Register.RegisterClass.SP);
-    private Register di = new Register(Register.RegisterClass.DI);
-    private Register si = new Register(Register.RegisterClass.SI);
-    private Register r8 = new Register(Register.RegisterClass.R8);
-    private Register r9 = new Register(Register.RegisterClass.R9);
-    private Register[] PARAS_REG = {di, si, dx, cx, r8, r9};
+    private Register cl = new Register(Register.RegisterClass.CL);
 
+    private Register[] PARAS_REG = {di, si, dx, cx, r8, r9};
+    private Register[] CALLER_SAVED_REG = {di, si, r8, r9, r10, r11};
+    private Register[] CALLEE_SAVED_REG = {bx, r12, r13, r14, r15};
 }

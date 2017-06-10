@@ -180,6 +180,7 @@ public class IRTransformer implements IRVisitor {
 
 
     private void call(Operand func, List<Operand> paras, Operand result){
+        curfunc.save_caller();
         int i = 0;
         for (Operand arg: paras){
             if(i < PARAS_REG.length)
@@ -417,16 +418,14 @@ public class IRTransformer implements IRVisitor {
     }
 
 
-
-    private Register ax= new PhiReg(Register.RegisterClass.AX);
-    
-    private Register cx = new PhiReg(Register.RegisterClass.CX);
-    private Register dx = new PhiReg(Register.RegisterClass.DX);
-    private Register di = new PhiReg(Register.RegisterClass.DI);
-    private Register si = new PhiReg(Register.RegisterClass.SI);
-    private Register r8 = new PhiReg(Register.RegisterClass.R8);
-    private Register r9 = new PhiReg(Register.RegisterClass.R9);
-    private Register bp = new PhiReg(Register.RegisterClass.BP);
+    private Register ax = Register.ax;
+    private Register cx = Register.cx;
+    private Register dx = Register.dx;
+    private Register di = Register.di;
+    private Register si = Register.si;
+    private Register r8 = Register.r8;
+    private Register r9 = Register.r9;
+    private Register bp = Register.bp;
 
     private Register[] PARAS_REG = {di, si, dx, cx, r8, r9};
 

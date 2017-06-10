@@ -56,8 +56,8 @@ public class SIR {
             System.out.println(x.name+':');
             x.instructions.stream().forEachOrdered(y->{
                 System.out.print(String.format("%1$-5s", Integer.toString(x.instructions.indexOf(y))+'\t'));
-                if (y instanceof Labelline) System.out.print(String.format("%1$-16s", y.toString()+':'));
-                else System.out.print(String.format("%1$-16s",'\t'+y.toString()));
+                if (y instanceof Labelline) System.out.print(String.format("%1$-25s", y.toString()+':'));
+                else System.out.print(String.format("%1$-25s",'\t'+y.toString()));
                 System.out.print("\t\t\tnext:");
                 String next = "";
                 for (Instruction succ : y.next) {
@@ -139,20 +139,16 @@ public class SIR {
                     if (!newout.equals(ins.out)) done = false;
                     ins.out = newout;
                 }
-                System.out.println("--------------- "+Integer.toString(++rnd[0])+"Rounds -------------------");
-                PrintInOut();
+              //  System.out.println("--------------- "+Integer.toString(++rnd[0])+"Rounds -------------------");
+                //PrintInOut();
             }while(!done);
         });
 
     }
-
-    public void RegisterAllocate(){
-        functionList.stream().forEachOrdered(func->{
-            Coloring coloring = new Coloring(func);
-            coloring.build();
-            coloring.print();
-
-        });
-
+    public void run(){
+        createGraph();
+        AnalyzeLiveness();
+        PrintInOut();
     }
+
 }

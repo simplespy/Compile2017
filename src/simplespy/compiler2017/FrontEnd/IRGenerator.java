@@ -78,6 +78,9 @@ public class IRGenerator implements ASTVisitor {
         if (node.init != null) {
             node.setIr(transformExpr(node.init));
         }
+        else if (node.getType() instanceof ClassType || node.getType() instanceof ArrayType){
+            node.setIr(new Int(0));
+        }
         ir.vars.add(node);
     }
 
@@ -131,6 +134,10 @@ public class IRGenerator implements ASTVisitor {
             Expr init = transformExpr(node.getVardec().init);
             assign(node.getLoc(), ref(node.getVardec()), init);
             node.getVardec().setIr(init);
+        } else if (currentVar.getType() instanceof ClassType || currentVar.getType() instanceof ArrayType){
+            Expr init = new Int(0);
+            assign(node.getLoc(), ref(node.getVardec()), init);
+
         }
     }
 

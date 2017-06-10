@@ -7,6 +7,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import simplespy.compiler2017.Asm.AssemblyCode;
+import simplespy.compiler2017.Asm.PhiReg;
 import simplespy.compiler2017.BackEnd.*;
 import simplespy.compiler2017.BackEnd.SIR.SIR;
 import simplespy.compiler2017.Exception.CompilationError;
@@ -18,6 +19,7 @@ import simplespy.compiler2017.Parser.SimpilerParser;
 
 
 import java.io.*;
+import java.util.Collection;
 
 /**
  * Created by spy on 17/3/22.
@@ -74,11 +76,9 @@ public class SingleTest {
             IRTransformer irTransformer = new IRTransformer();
             ir.accept(irTransformer);
             SIR sir = irTransformer.getSir();
- //           sir.createGraph();
- //           sir.AnalyzeLiveness();
-            //sir.Print();
-  //          sir.PrintInOut();
- //           sir.RegisterAllocate();
+
+            SimpleAllocator simpleAllocator = new SimpleAllocator(sir);
+            simpleAllocator.run();
 
             CodeBuilder codeBuilder = new CodeBuilder(sir);
             codeBuilder.build();

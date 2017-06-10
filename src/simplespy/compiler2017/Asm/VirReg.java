@@ -27,14 +27,6 @@ public class VirReg extends Register {
         return id;
     }
 
-    public void printLifeSpan(PrintStream out){
-        out.print("Reg" + id + " : ");
-        for (int i = 0; i <= lifeSpan.end; ++i){
-            if (i == lifeSpan.begin || i == lifeSpan.end) out.print(i);
-            else if(i < lifeSpan.begin) out.print(' ');
-            else  out.print('-');
-        }
-        out.println();
-    }
+
 
 }

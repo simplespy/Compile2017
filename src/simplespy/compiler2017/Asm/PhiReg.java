@@ -12,4 +12,5 @@ public class PhiReg extends Register {
     public boolean isReg() {
         return true;
     }
+
 }
