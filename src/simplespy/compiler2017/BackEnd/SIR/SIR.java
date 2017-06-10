@@ -1,6 +1,7 @@
 package simplespy.compiler2017.BackEnd.SIR;
 
 import simplespy.compiler2017.Asm.*;
+import simplespy.compiler2017.BackEnd.Coloring;
 import simplespy.compiler2017.FrontEnd.GlobalScope;
 import simplespy.compiler2017.FrontEnd.TypeTable;
 import simplespy.compiler2017.NodeFamily.FuncDefNode;
@@ -54,32 +55,44 @@ public class SIR {
         functionList.stream().forEachOrdered(x->{
             System.out.println(x.name+':');
             x.instructions.stream().forEachOrdered(y->{
-                System.out.print(Integer.toString(x.instructions.indexOf(y))+'\t');
-                if (y instanceof Labelline) System.out.print(y.toString()+':');
-                else System.out.print('\t'+y.toString());
+                System.out.print(String.format("%1$-5s", Integer.toString(x.instructions.indexOf(y))+'\t'));
+                if (y instanceof Labelline) System.out.print(String.format("%1$-16s", y.toString()+':'));
+                else System.out.print(String.format("%1$-16s",'\t'+y.toString()));
                 System.out.print("\t\t\tnext:");
+                String next = "";
                 for (Instruction succ : y.next) {
                     while (succ instanceof Jmp) succ = x.labelInstructionMap.get(((Jmp) succ).label);
-                    while (succ instanceof Labelline) succ = succ.next.get(0);
-                    System.out.print(Integer.toString(x.instructions.indexOf(succ))+' ');
-                }
+                    while (succ instanceof Labelline) {
+                        if (succ.equals(x.labelInstructionMap.get(x.epilogue))) break;
+                        succ = succ.next.get(0);
+                    }
+                    next = next.concat(Integer.toString(x.instructions.indexOf(succ))+' ');
+                }System.out.print(String.format("%1$-7s", next));
 
-                System.out.print("\t\t\tdef:");
+                String buffer = "";
+                System.out.print("\tdef:");
                 for (Register in : y.def) {
-                    System.out.print(in.toString() + ' ');
+                    buffer = buffer.concat(in.toString()+' ');
                 }
-                System.out.print("\t\t\tuse:");
+                System.out.print(String.format("%1$-7s", buffer));
+                buffer = "";
+                System.out.print("\t\tuse:");
                 for (Register in : y.use) {
-                    System.out.print(in.toString() + ' ');
+                    buffer = buffer.concat(in.toString()+' ');
                 }
-                System.out.print("\t\t\tin:");
+                System.out.print(String.format("%1$-10s", buffer));
+                buffer = "";
+                System.out.print("\t\tin:");
                 for (Register in : y.in) {
-                    System.out.print(in.toString() +' ');
-                }System.out.print("\t\t\tout:");
-                for (Register out : y.out) {
-                    System.out.print(out.toString() +' ');
+                    buffer = buffer.concat(in.toString()+' ');
                 }
-                System.out.println();
+                System.out.print(String.format("%1$-18s", buffer));
+                buffer = "";
+                System.out.print("\t\tout:");
+                for (Register out : y.out) {
+                    buffer = buffer.concat(out.toString()+' ');
+                }
+                System.out.println(String.format("%1$-18s", buffer));
 
             });
         });
@@ -126,9 +139,19 @@ public class SIR {
                     if (!newout.equals(ins.out)) done = false;
                     ins.out = newout;
                 }
-           //     System.out.println("--------------- "+Integer.toString(++rnd[0])+"Rounds -------------------");
-            //    PrintInOut();
+                System.out.println("--------------- "+Integer.toString(++rnd[0])+"Rounds -------------------");
+                PrintInOut();
             }while(!done);
+        });
+
+    }
+
+    public void RegisterAllocate(){
+        functionList.stream().forEachOrdered(func->{
+            Coloring coloring = new Coloring(func);
+            coloring.build();
+            coloring.print();
+
         });
 
     }

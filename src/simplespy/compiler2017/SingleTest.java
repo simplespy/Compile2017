@@ -69,22 +69,16 @@ public class SingleTest {
             IRRoot ir = irGenerator.getIR();
             IRPrinter irPrinter = new IRPrinter(System.out);
             ir.accept(irPrinter);
-         /*   CodeGenerator codeGenerator = new CodeGenerator();
-            ir.accept(codeGenerator);
-            AssemblyCode ac = codeGenerator.getAC();
 
-
-            
-            ASMPrinter asmPrinter = new ASMPrinter(os);
-            ac.accept(asmPrinter);*/
 
             IRTransformer irTransformer = new IRTransformer();
             ir.accept(irTransformer);
             SIR sir = irTransformer.getSir();
-          //  sir.createGraph();
-         //   sir.AnalyzeLiveness();
-            sir.Print();
-            //sir.PrintNext();
+ //           sir.createGraph();
+ //           sir.AnalyzeLiveness();
+            //sir.Print();
+  //          sir.PrintInOut();
+ //           sir.RegisterAllocate();
 
             CodeBuilder codeBuilder = new CodeBuilder(sir);
             codeBuilder.build();

@@ -69,7 +69,7 @@ public class IRTransformer implements IRVisitor {
                     ++i;
                 }
                 else{
-                    func.mov(new IndirectMemoryReference(numWords * 8, bp()), y.getOperand());
+                    func.mov(new IndirectMemoryReference(numWords * 8, bp), y.getOperand());
                     ++numWords;
                 }
             }
@@ -84,7 +84,7 @@ public class IRTransformer implements IRVisitor {
             if (x.equals("main")) node.vars.stream().filter(y->y.init != null).forEachOrdered(y->{
                 visit(y.ir);
                 if (y.getType().isString()){
-                    curfunc.call(new Symbol("transtring"),new ArrayList<Operand>(){{add(y.ir.getResult());}}, y.getOperand());
+                    call(new Symbol("transtring"),new ArrayList<Operand>(){{add(y.ir.getResult());}}, y.getOperand());
                 }
                 else curfunc.mov(y.ir.getResult(),y.getOperand());
             });
@@ -140,28 +140,28 @@ public class IRTransformer implements IRVisitor {
                     curfunc.mov(right.getResult(), si());*/
                     paras.add(left.getResult());
                     paras.add(right.getResult());
-                    curfunc.call(new Symbol("String_add"), paras, result); break;
+                    call(new Symbol("String_add"), paras, result); break;
                 default:
                     paras.add(right.getResult());
                     paras.add(left.getResult());
                     switch (node.getOp()) {
                         case EQ:
-                            curfunc.call(new Symbol("String_eq"), paras, result);
+                            call(new Symbol("String_eq"), paras, result);
                             break;
                         case NE:
-                            curfunc.call(new Symbol("String_ne"), paras, result);
+                            call(new Symbol("String_ne"), paras, result);
                             break;
                         case GT:
-                            curfunc.call(new Symbol("String_gt"), paras, result);
+                            call(new Symbol("String_gt"), paras, result);
                             break;
                         case GE:
-                            curfunc.call(new Symbol("String_ge"), paras, result);
+                            call(new Symbol("String_ge"), paras, result);
                             break;
                         case LT:
-                            curfunc.call(new Symbol("String_lt"), paras, result);
+                            call(new Symbol("String_lt"), paras, result);
                             break;
                         case LE:
-                            curfunc.call(new Symbol("String_le"), paras, result);
+                            call(new Symbol("String_le"), paras, result);
                             break;
                     }
             }
@@ -179,8 +179,18 @@ public class IRTransformer implements IRVisitor {
     }
 
 
-    private Register[] PARAS_REG = {di(), si(), dx(), cx(), r8(), r9()};
+    private void call(Operand func, List<Operand> paras, Operand result){
+        int i = 0;
+        for (Operand arg: paras){
+            if(i < PARAS_REG.length)
+                curfunc.mov(arg, PARAS_REG[i]);
+            ++i;
+        }
+        curfunc.call(func, paras, result);
 
+        if (result != null) curfunc.mov(ax, result);
+
+    }
 
     @Override
     public void visit(Call node) {
@@ -207,9 +217,12 @@ public class IRTransformer implements IRVisitor {
 
 
         VirReg result = new VirReg(curfunc);
-        curfunc.call(new Symbol(funcName), paras, result);
+
+        call(new Symbol(funcName), paras, result);
+
         node.setResult(result);
     }
+
 
     @Override
     public void visit(CJump node) {
@@ -247,7 +260,7 @@ public class IRTransformer implements IRVisitor {
     public void visit(Return node) {
         if (node.getExpr() != null) {
             visit(node.getExpr());
-            curfunc.mov(node.getExpr().getResult(), ax());
+            curfunc.mov(node.getExpr().getResult(), ax);
         }
         curfunc.jmp(curfunc.epilogue);
     }
@@ -288,7 +301,7 @@ public class IRTransformer implements IRVisitor {
         visit(right);
         visit(left);
         if (node.getLhs().getEntityForce().getType().isString()){
-            curfunc.call(new Symbol("transtring"),new ArrayList<Operand>(){{add(right.getResult());}}, left.getResult());
+            call(new Symbol("transtring"),new ArrayList<Operand>(){{add(right.getResult());}}, left.getResult());
         }
 
         else curfunc.mov(right.getResult(), left.getResult());
@@ -298,6 +311,8 @@ public class IRTransformer implements IRVisitor {
     public void visit(FuncDefNode node) {
 
     }
+
+
 
     @Override
     public void visit(Stmt node) {
@@ -348,7 +363,7 @@ public class IRTransformer implements IRVisitor {
 
         curfunc.bin(BinaryOpNode.BinaryOp.ADD, size, new ImmediateValue(1));
         curfunc.bin(BinaryOpNode.BinaryOp.MUL, size, new ImmediateValue(8));
-        curfunc.call(malloc, new ArrayList<Operand>(){{add(size);}}, result);
+        call(malloc, new ArrayList<Operand>(){{add(size);}}, result);
 
         curfunc.mov(dimSize.getResult(), new MemoryReference(result));//save size info
         curfunc.bin(BinaryOpNode.BinaryOp.ADD, result, new ImmediateValue(8));
@@ -387,10 +402,10 @@ public class IRTransformer implements IRVisitor {
         Symbol malloc = new Symbol("malloc");
         VirReg result = new VirReg(curfunc);
         ClassDefNode cls = sir.typeTable.getClassDefNode(node.getEntity().getType().getBaseType().toString());
-        curfunc.call(malloc, new ArrayList<Operand>(){{add(new ImmediateValue(node.baseSize));}}, result);
+        call(malloc, new ArrayList<Operand>(){{add(new ImmediateValue(node.baseSize));}}, result);
 
         if (cls.constructor != null) {
-            curfunc.call(new Symbol(cls.name + '_' + cls.name), new ArrayList<Operand>(){{add(result);}});
+            call(new Symbol(cls.name + '_' + cls.name), new ArrayList<Operand>(){{add(result);}},null);
         }
         return result;
     }
@@ -403,16 +418,16 @@ public class IRTransformer implements IRVisitor {
 
 
 
-    private Register ax(){
-        return new PhiReg(Register.RegisterClass.AX);
-    }
-    private Register cx(){return new PhiReg(Register.RegisterClass.CX);}
-    private Register dx(){return new PhiReg(Register.RegisterClass.DX);}
-    private Register di(){return new PhiReg(Register.RegisterClass.DI);}
-    private Register si(){return new PhiReg(Register.RegisterClass.SI);}
-    private Register r8(){return new PhiReg(Register.RegisterClass.R8);}
-    private Register r9(){return new PhiReg(Register.RegisterClass.R9);}
-    private Register bp(){return new PhiReg(Register.RegisterClass.BP);}
+    private Register ax= new PhiReg(Register.RegisterClass.AX);
+    
+    private Register cx = new PhiReg(Register.RegisterClass.CX);
+    private Register dx = new PhiReg(Register.RegisterClass.DX);
+    private Register di = new PhiReg(Register.RegisterClass.DI);
+    private Register si = new PhiReg(Register.RegisterClass.SI);
+    private Register r8 = new PhiReg(Register.RegisterClass.R8);
+    private Register r9 = new PhiReg(Register.RegisterClass.R9);
+    private Register bp = new PhiReg(Register.RegisterClass.BP);
 
+    private Register[] PARAS_REG = {di, si, dx, cx, r8, r9};
 
 }

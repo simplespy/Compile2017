@@ -5,7 +5,6 @@ import simplespy.compiler2017.BackEnd.SIR.*;
 import simplespy.compiler2017.FrontEnd.GlobalScope;
 import simplespy.compiler2017.NodeFamily.*;
 import simplespy.compiler2017.Utils.AsmUtils;
-import simplespy.compiler2017.Utils.ListUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,7 +84,7 @@ public class CodeBuilder implements ASMVisitor{
     private int locateLocalVars(Function func){
         int len = 0;
 
-        for (Operand  virReg : func.registerMap.keySet()){
+        for (VirReg  virReg : func.registerMap.keySet()){
             if (func.registerMap.get(virReg) == null){
                 len = AsmUtils.align(len + STACK_WORD_SIZE, STACK_WORD_SIZE);
                 func.registerMap.replace(virReg, new IndirectMemoryReference(-len, bp));
@@ -248,17 +247,14 @@ public class CodeBuilder implements ASMVisitor{
                 ++offset;
             }
             else {
-                if (arg == null){
-                    throw new Error();
-                }
-                acfunc.mov(transfer(arg), PARAS_REG[i]);
+                //acfunc.mov(transfer(arg), PARAS_REG[i]);
                 ++i;
 
             }
 
         }
         acfunc.call((Symbol) ins.operands[0]);
-        if (ins.operands.length == 2) acfunc.mov(ax, transfer(ins.operands[1]));
+       // if (ins.operands.length == 2) acfunc.mov(ax, transfer(ins.operands[1]));
         curfunc.parameterSavedWord = Math.max(curfunc.parameterSavedWord, offset + 2);
     }
 

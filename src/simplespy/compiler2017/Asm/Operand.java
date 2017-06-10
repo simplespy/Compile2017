@@ -1,5 +1,6 @@
 package simplespy.compiler2017.Asm;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -11,7 +12,7 @@ abstract public class Operand implements OperandPattern {
         return equals(operand);
     }
     public abstract void fixOffset(int i);
-    public Set<Register> getRegisters(Set<Register> registers){
+    public List<Register> getRegisters(List<Register> registers){
         return registers;
     }
     public boolean isReg(){

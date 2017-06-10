@@ -1,5 +1,6 @@
 package simplespy.compiler2017.Asm;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -59,17 +60,7 @@ public class Register extends Operand {
         return reg;
     }
 
-    public RegisterClass getRegisterClass() {
-        return registerClass;
-    }
-    public boolean equals(Object other) {
-        return (other instanceof Register) && equals((Register)other);
-    }
 
-    /** size difference does NOT matter. */
-    public boolean equals(Register reg) {
-        return registerClass.equals(reg.registerClass);
-    }
 
     /**
      * Created by spy on 5/22/17.
@@ -79,9 +70,24 @@ public class Register extends Operand {
     }
 
     @Override
-    public Set<Register> getRegisters(Set<Register> registers) {
+    public List<Register> getRegisters(List<Register> registers) {
         registers.add(this);
         return registers;
+    }
+
+    public int getID(){
+        return -1;
+    }
+    class LifeSpan{
+        public int begin = 10000000;
+        public int end = 0;
+    }
+    LifeSpan lifeSpan = new LifeSpan();
+
+    public void setLifeSpan(int old) {
+        lifeSpan.begin = Math.min(lifeSpan.begin, old);
+        lifeSpan.end = Math.max(lifeSpan.end, old);
+
     }
 }
 

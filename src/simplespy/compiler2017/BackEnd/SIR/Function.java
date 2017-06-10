@@ -19,7 +19,7 @@ public class Function {
     public String name;
     public List<Instruction> instructions;
     public Map<Label, Instruction> labelInstructionMap = new LinkedHashMap<>();
-    public Map<Operand, Operand> registerMap = new LinkedHashMap<>();
+    public Map<VirReg, Operand> registerMap = new LinkedHashMap<>();
     public List<VarDecNode> paras = new ArrayList<>();
     public Label epilogue;
     public int parameterSavedWord;
@@ -59,5 +59,8 @@ public class Function {
         registerMap.put(virReg, address);
     }
     public void comment(String comment){ instructions.get(instructions.size()-1).setComment(comment);}
+
+
+
 
 }

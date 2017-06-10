@@ -14,8 +14,8 @@ public class Instruction extends Assembly {
     public Operand[] operands;
     protected boolean needRelocation;
     public List<Instruction> next = new LinkedList<>();
-    public Set<Register> def = new HashSet<>();
-    public Set<Register> use = new HashSet<>();
+    public List<Register> def = new ArrayList<>();
+    public List<Register> use = new ArrayList<>();
     public Set<Register> in = new HashSet<>();
     public Set<Register> out = new HashSet<>();
 
